@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Plus, 
+  CirclePlus, 
   Type, 
   Mail, 
   Hash, 
@@ -15,7 +15,12 @@ import {
   Phone,
   Link,
   Clock,
-  DragDropIcon
+  DragDropIcon,
+  Copy,
+  Trash2,
+  ChevronUp,
+  ChevronDown,
+  Settings
 } from 'lucide-react';
 import Layout from '../layout/Layout';
 import Button from '../ui/Button';
@@ -436,7 +441,7 @@ const FieldEditor = ({
             onClick={onMoveUp}
             disabled={index === 0}
           >
-            ↑
+            <ChevronUp size={16} />
           </Button>
           <Button
             variant="ghost"
@@ -444,28 +449,28 @@ const FieldEditor = ({
             onClick={onMoveDown}
             disabled={index === totalFields - 1}
           >
-            ↓
+            <ChevronDown size={16} />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={onDuplicate}
           >
-            📋
+            <Copy size={16} />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setIsExpanded(!isExpanded)}
           >
-            {isExpanded ? '−' : '+'}
+            <Settings size={16} />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={onRemove}
           >
-            🗑️
+            <Trash2 size={16} />
           </Button>
         </Layout.Flex>
       </div>
