@@ -281,64 +281,6 @@ const HomePage = ({ onNavigate }) => {
         </Layout.Container>
       </Layout.Section>
 
-      {/* Features Section */}
-      <Layout.Section padding="lg">
-        <Layout.Container>
-          <div style={{ textAlign: 'center', marginBottom: theme.spacing[16] }}>
-            <h2 style={{
-              fontSize: theme.typography.fontSize['3xl'],
-              fontWeight: theme.typography.fontWeight.bold,
-              color: theme.colors.secondary[900],
-              marginBottom: theme.spacing[4]
-            }}>
-              Why FormForge?
-            </h2>
-            <p style={{
-              fontSize: theme.typography.fontSize.lg,
-              color: theme.colors.secondary[600],
-              maxWidth: '600px',
-              margin: '0 auto'
-            }}>
-              Built specifically for forms-to-PDF generation. No feature bloat, just professional results.
-            </p>
-          </div>
-
-          <Layout.Grid cols="auto" gap={8}>
-            {features.map((feature, index) => (
-              <Card key={index} variant="glass" padding="lg">
-                <div style={{
-                  width: '60px',
-                  height: '60px',
-                  borderRadius: theme.borderRadius.xl,
-                  background: theme.gradients.primary,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: theme.spacing[6],
-                  color: 'white'
-                }}>
-                  {feature.icon}
-                </div>
-                <h3 style={{
-                  fontSize: theme.typography.fontSize.xl,
-                  fontWeight: theme.typography.fontWeight.bold,
-                  color: theme.colors.secondary[900],
-                  marginBottom: theme.spacing[3]
-                }}>
-                  {feature.title}
-                </h3>
-                <p style={{
-                  color: theme.colors.secondary[600],
-                  lineHeight: theme.typography.lineHeight.relaxed
-                }}>
-                  {feature.description}
-                </p>
-              </Card>
-            ))}
-          </Layout.Grid>
-        </Layout.Container>
-      </Layout.Section>
-
       {/* Templates Section */}
       <Layout.Section padding="lg">
         <Layout.Container>
@@ -417,6 +359,64 @@ const HomePage = ({ onNavigate }) => {
                 <Button variant="ghost" rightIcon={<ArrowRight size={16} />}>
                   Get Started
                 </Button>
+              </Card>
+            ))}
+          </Layout.Grid>
+        </Layout.Container>
+      </Layout.Section>
+
+      {/* Features Section */}
+      <Layout.Section padding="lg">
+        <Layout.Container>
+          <div style={{ textAlign: 'center', marginBottom: theme.spacing[16] }}>
+            <h2 style={{
+              fontSize: theme.typography.fontSize['3xl'],
+              fontWeight: theme.typography.fontWeight.bold,
+              color: theme.colors.secondary[900],
+              marginBottom: theme.spacing[4]
+            }}>
+              Why FormForge?
+            </h2>
+            <p style={{
+              fontSize: theme.typography.fontSize.lg,
+              color: theme.colors.secondary[600],
+              maxWidth: '600px',
+              margin: '0 auto'
+            }}>
+              Built specifically for forms-to-PDF generation. No feature bloat, just professional results.
+            </p>
+          </div>
+
+          <Layout.Grid cols="auto" gap={8}>
+            {features.map((feature, index) => (
+              <Card key={index} variant="glass" padding="lg">
+                <div style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: theme.borderRadius.xl,
+                  background: theme.gradients.primary,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: theme.spacing[6],
+                  color: 'white'
+                }}>
+                  {feature.icon}
+                </div>
+                <h3 style={{
+                  fontSize: theme.typography.fontSize.xl,
+                  fontWeight: theme.typography.fontWeight.bold,
+                  color: theme.colors.secondary[900],
+                  marginBottom: theme.spacing[3]
+                }}>
+                  {feature.title}
+                </h3>
+                <p style={{
+                  color: theme.colors.secondary[600],
+                  lineHeight: theme.typography.lineHeight.relaxed
+                }}>
+                  {feature.description}
+                </p>
               </Card>
             ))}
           </Layout.Grid>
