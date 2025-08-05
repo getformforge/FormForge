@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(pkill:*)",
+      "WebFetch(domain:formforge.solutions)",
+      "WebFetch(domain:formforge.com)",
+      "Bash(npm run build:*)"
+    ],
+    "deny": []
+  }
+}
