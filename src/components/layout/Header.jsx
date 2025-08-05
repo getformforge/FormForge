@@ -56,7 +56,9 @@ const Header = ({
                 <p style={{
                   fontSize: theme.typography.fontSize.sm,
                   color: theme.colors.secondary[600],
-                  margin: 0
+                  margin: 0,
+                  fontWeight: theme.typography.fontWeight.medium,
+                  letterSpacing: '0.025em'
                 }}>
                   {subtitle}
                 </p>

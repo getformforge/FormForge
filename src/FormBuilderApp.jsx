@@ -329,8 +329,8 @@ const FormBuilderApp = () => {
   return (
     <Layout>
       <Header
-        title="FormForge Builder"
-        subtitle="Create professional forms and generate beautiful PDFs"
+        title="FormForge"
+        subtitle="Create, share, and collect form responses • Generate professional PDFs"
         showHomeButton={true}
         onHome={() => window.location.href = '/'}
         user={currentUser}
