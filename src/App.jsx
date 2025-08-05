@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Download, FileText, Plus, Trash2, Save, FolderOpen, ChevronUp, ChevronDown, 
          Type, Mail, Hash, Calendar, FileUp, CheckSquare, List, Sparkles, Star, PenTool, 
-         Share, Copy, Eye, BarChart3, User } from 'lucide-react';
+         Share, Copy, Eye, BarChart3, User, Layout } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
 import UserDashboard from './components/UserDashboard';
 import PlanLimits from './components/PlanLimits';
 import PricingModal from './components/PricingModal';
+import Templates from './components/Templates';
 import { 
   saveFormTemplate, 
   getUserFormTemplates, 
@@ -24,6 +25,7 @@ const FormPDFApp = () => {
   const { currentUser } = useAuth();
   const [showUserDashboard, setShowUserDashboard] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [statsRefreshTrigger, setStatsRefreshTrigger] = useState(0);
   
   const [formFields, setFormFields] = useState([
@@ -56,6 +58,37 @@ const FormPDFApp = () => {
     
     loadUserTemplates();
   }, [currentUser]);
+
+  // Check for template from landing pages on component mount
+  useEffect(() => {
+    const selectedTemplate = sessionStorage.getItem('selectedTemplate');
+    if (selectedTemplate) {
+      try {
+        const template = JSON.parse(selectedTemplate);
+        if (template && template.fields) {
+          // Convert template fields to FormForge format
+          const formFields = template.fields.map((field, index) => ({
+            ...field,
+            id: Date.now() + index, // Ensure unique IDs
+          }));
+          
+          setFormFields(formFields);
+          setFormData({});
+          
+          // Clear the template from sessionStorage
+          sessionStorage.removeItem('selectedTemplate');
+          
+          // Show success message
+          setTimeout(() => {
+            alert(`✅ Template "${template.name}" loaded successfully! Start filling out the form to generate your professional PDF.`);
+          }, 500);
+        }
+      } catch (error) {
+        console.error('Error loading template from landing page:', error);
+        sessionStorage.removeItem('selectedTemplate');
+      }
+    }
+  }, []);
 
   const addField = (type) => {
     const newField = {
@@ -366,6 +399,255 @@ const FormPDFApp = () => {
     pdf.text('FormForge', pageWidth - margin - 20, pdf.internal.pageSize.getHeight() - 10);
   };
 
+  const generateMedicalPDF = (pdf, pageWidth, margin) => {
+    let currentY = 40;
+    
+    // Medical header with professional styling
+    pdf.setFillColor(41, 128, 185); // Medical blue
+    pdf.rect(0, 0, pageWidth, 45, 'F');
+    
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(24);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('MEDICAL INTAKE FORM', pageWidth / 2, 20, { align: 'center' });
+    
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('CONFIDENTIAL PATIENT INFORMATION', pageWidth / 2, 35, { align: 'center' });
+    
+    pdf.setTextColor(0, 0, 0);
+    currentY = 65;
+    
+    // Date and facility info
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Date: ${new Date().toLocaleDateString()}`, margin, currentY);
+    pdf.text(`Time: ${new Date().toLocaleTimeString()}`, pageWidth - margin - 80, currentY);
+    
+    currentY += 25;
+    
+    // Medical form styling with grouped sections
+    let sectionY = currentY;
+    const sections = {
+      'Patient Information': ['patient_name', 'date_of_birth', 'gender', 'address', 'phone', 'email'],
+      'Emergency Contact': ['emergency_contact_name', 'emergency_contact_phone'],
+      'Insurance Information': ['insurance_provider', 'policy_number'],
+      'Medical History': ['chief_complaint', 'current_medications', 'allergies', 'medical_history', 'family_history'],
+      'Lifestyle': ['smoking_status', 'alcohol_use'],
+      'Consent & Signatures': ['consent_treatment', 'hipaa_acknowledgment', 'patient_signature']
+    };
+    
+    Object.entries(sections).forEach(([sectionTitle, fieldIds]) => {
+      if (currentY > 240) {
+        pdf.addPage();
+        currentY = 30;
+      }
+      
+      // Section header
+      pdf.setFillColor(245, 245, 245);
+      pdf.rect(margin - 5, currentY - 5, pageWidth - 2 * margin + 10, 18, 'F');
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(41, 128, 185);
+      pdf.text(sectionTitle, margin, currentY + 8);
+      
+      currentY += 25;
+      pdf.setTextColor(0, 0, 0);
+      
+      fieldIds.forEach(fieldId => {
+        const field = formFields.find(f => f.id === fieldId);
+        if (!field) return;
+        
+        if (currentY > 250) {
+          pdf.addPage();
+          currentY = 30;
+        }
+        
+        // Field styling
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(`${field.label}:`, margin, currentY);
+        
+        pdf.setFont('helvetica', 'normal');
+        let value = formData[field.id] || 'Not provided';
+        
+        if (field.type === 'checkbox') {
+          value = value === true || value === 'true' ? '☑ Yes' : '☐ No';
+        } else if (field.type === 'signature') {
+          value = value ? `Signed: ${value}` : 'Not signed';
+        }
+        
+        const valueText = String(value).substring(0, 50);
+        pdf.text(valueText, margin, currentY + 10);
+        
+        currentY += 20;
+      });
+      
+      currentY += 10;
+    });
+    
+    // Medical footer
+    const footerY = pdf.internal.pageSize.getHeight() - 25;
+    pdf.setFillColor(245, 245, 245);
+    pdf.rect(0, footerY - 5, pageWidth, 30, 'F');
+    
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('This document contains confidential medical information protected by HIPAA', pageWidth / 2, footerY + 5, { align: 'center' });
+    pdf.text('Powered by FormForge Medical Forms', pageWidth / 2, footerY + 15, { align: 'center' });
+  };
+
+  const generateLegalPDF = (pdf, pageWidth, margin) => {
+    let currentY = 40;
+    
+    // Legal document header
+    pdf.setLineWidth(3);
+    pdf.setDrawColor(139, 69, 19); // Legal brown
+    pdf.rect(margin, 15, pageWidth - 2 * margin, 50);
+    
+    pdf.setFontSize(22);
+    pdf.setFont('times', 'bold');
+    pdf.setTextColor(139, 69, 19);
+    pdf.text('LEGAL AGREEMENT', pageWidth / 2, 35, { align: 'center' });
+    
+    pdf.setFontSize(12);
+    pdf.setFont('times', 'normal');
+    pdf.setTextColor(0, 0, 0);
+    pdf.text(`Executed on: ${new Date().toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    })}`, pageWidth / 2, 55, { align: 'center' });
+    
+    currentY = 85;
+    
+    // Legal document styling with formal layout
+    formFields.forEach((field, index) => {
+      if (currentY > 240) {
+        pdf.addPage();
+        currentY = 30;
+      }
+      
+      // Article numbering for legal sections
+      if (field.type === 'textarea' && field.label.toLowerCase().includes('terms')) {
+        pdf.setFontSize(14);
+        pdf.setFont('times', 'bold');
+        pdf.text(`Article ${index + 1}. ${field.label}`, margin, currentY);
+        currentY += 15;
+      } else {
+        pdf.setFontSize(12);
+        pdf.setFont('times', 'bold');
+        pdf.text(`${index + 1}. ${field.label}:`, margin, currentY);
+      }
+      
+      // Value with legal formatting
+      pdf.setFont('times', 'normal');
+      let value = formData[field.id] || '[TO BE FILLED]';
+      
+      if (field.type === 'signature') {
+        value = value ? `SIGNED: ${value.toUpperCase()}` : '[SIGNATURE REQUIRED]';
+      } else if (field.type === 'date') {
+        value = value ? new Date(value).toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }) : '[DATE TO BE FILLED]';
+      }
+      
+      // Wrap text for legal documents
+      const lines = pdf.splitTextToSize(String(value), pageWidth - 2 * margin - 20);
+      lines.forEach((line, lineIndex) => {
+        if (currentY > 260) {
+          pdf.addPage();
+          currentY = 30;
+        }
+        pdf.text(line, margin + 20, currentY + 12 + (lineIndex * 12));
+      });
+      
+      currentY += Math.max(20, lines.length * 12 + 10);
+    });
+    
+    // Legal footer with witness lines
+    const footerY = pdf.internal.pageSize.getHeight() - 60;
+    pdf.setLineWidth(1);
+    pdf.line(margin, footerY, margin + 80, footerY);
+    pdf.line(pageWidth - margin - 80, footerY, pageWidth - margin, footerY);
+    
+    pdf.setFontSize(10);
+    pdf.setFont('times', 'normal');
+    pdf.text('Witness Signature', margin, footerY + 10);
+    pdf.text('Date', pageWidth - margin - 30, footerY + 10);
+    
+    pdf.text('Generated by FormForge Legal Documents', pageWidth / 2, footerY + 35, { align: 'center' });
+  };
+
+  const generateBusinessPDF = (pdf, pageWidth, margin) => {
+    let currentY = 40;
+    
+    // Business header with company branding space
+    pdf.setFillColor(52, 73, 94); // Professional dark blue
+    pdf.rect(0, 0, pageWidth, 40, 'F');
+    
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(26);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('BUSINESS DOCUMENT', pageWidth / 2, 28, { align: 'center' });
+    
+    pdf.setTextColor(0, 0, 0);
+    currentY = 60;
+    
+    // Business document styling
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Document Date: ${new Date().toLocaleDateString()}`, margin, currentY);
+    pdf.text(`Reference: BD-${Date.now().toString().slice(-6)}`, pageWidth - margin - 60, currentY);
+    
+    currentY += 30;
+    
+    // Professional field layout
+    formFields.forEach((field) => {
+      if (currentY > 250) {
+        pdf.addPage();
+        currentY = 30;
+      }
+      
+      // Business field styling with boxes
+      pdf.setDrawColor(200, 200, 200);
+      pdf.setLineWidth(0.5);
+      pdf.rect(margin, currentY - 5, pageWidth - 2 * margin, 22);
+      
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(52, 73, 94);
+      pdf.text(field.label.toUpperCase(), margin + 5, currentY + 5);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(0, 0, 0);
+      let value = formData[field.id] || '';
+      
+      if (field.type === 'signature') {
+        value = value ? `✓ ${value}` : 'Pending signature';
+      }
+      
+      const valueText = String(value).substring(0, 45);
+      pdf.text(valueText, margin + 5, currentY + 15);
+      
+      currentY += 30;
+    });
+    
+    // Business footer
+    const footerY = pdf.internal.pageSize.getHeight() - 20;
+    pdf.setFillColor(248, 249, 250);
+    pdf.rect(0, footerY - 10, pageWidth, 30, 'F');
+    
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(108, 117, 125);
+    pdf.text('Professional Business Forms by FormForge', pageWidth / 2, footerY, { align: 'center' });
+  };
+
   const generatePDF = async () => {
     // Validate required fields
     const missingFields = formFields
@@ -402,19 +684,45 @@ const FormPDFApp = () => {
       const pageWidth = pdf.internal.pageSize.getWidth();
       const margin = 20;
 
-      // Generate PDF based on selected template
-      switch (pdfTemplate) {
-        case 'modern':
-          generateModernPDF(pdf, pageWidth, margin);
-          break;
-        case 'classic':
-          generateClassicPDF(pdf, pageWidth, margin);
-          break;
-        case 'minimal':
-          generateMinimalPDF(pdf, pageWidth, margin);
-          break;
-        default:
-          generateModernPDF(pdf, pageWidth, margin);
+      // Detect template type from form fields for specialized styling
+      const hasSignatures = formFields.some(f => f.type === 'signature');
+      const hasLegalFields = formFields.some(f => f.label.toLowerCase().includes('agreement') || 
+                                                 f.label.toLowerCase().includes('contract') ||
+                                                 f.label.toLowerCase().includes('terms') ||
+                                                 f.id.includes('nda') ||
+                                                 f.id.includes('landlord') ||
+                                                 f.id.includes('tenant'));
+      const hasMedicalFields = formFields.some(f => f.id.includes('patient') || 
+                                                  f.id.includes('medical') ||
+                                                  f.id.includes('hipaa') ||
+                                                  f.id.includes('insurance') ||
+                                                  f.label.toLowerCase().includes('allergies'));
+      const hasBusinessFields = formFields.some(f => f.id.includes('invoice') ||
+                                                   f.id.includes('business') ||
+                                                   f.label.toLowerCase().includes('invoice'));
+      
+      // Generate PDF based on template type detection or user selection
+      if (hasMedicalFields) {
+        generateMedicalPDF(pdf, pageWidth, margin);
+      } else if (hasLegalFields && hasSignatures) {
+        generateLegalPDF(pdf, pageWidth, margin);
+      } else if (hasBusinessFields) {
+        generateBusinessPDF(pdf, pageWidth, margin);
+      } else {
+        // Fallback to user-selected template
+        switch (pdfTemplate) {
+          case 'modern':
+            generateModernPDF(pdf, pageWidth, margin);
+            break;
+          case 'classic':
+            generateClassicPDF(pdf, pageWidth, margin);
+            break;
+          case 'minimal':
+            generateMinimalPDF(pdf, pageWidth, margin);
+            break;
+          default:
+            generateModernPDF(pdf, pageWidth, margin);
+        }
       }
       
       // Download the PDF
@@ -516,6 +824,12 @@ const FormPDFApp = () => {
       console.error('Plan upgrade error:', error);
       alert('❌ Failed to upgrade plan. Please try again.');
     }
+  };
+
+  const handleSelectTemplate = (templateFields, templateName) => {
+    setFormFields(templateFields);
+    setFormData({});
+    alert(`✅ Template "${templateName}" loaded successfully!`);
   };
 
   const styles = {
@@ -1282,6 +1596,13 @@ const FormPDFApp = () => {
               <h2 style={styles.cardTitle}>Form Builder</h2>
               <div style={styles.buttonGroup}>
                 <button
+                  onClick={() => setShowTemplates(true)}
+                  style={styles.iconButton}
+                  title="Browse Templates"
+                >
+                  <Layout size={20} />
+                </button>
+                <button
                   onClick={() => setShowSaveDialog(true)}
                   style={styles.iconButton}
                   title="Save Template"
@@ -1758,6 +2079,14 @@ const FormPDFApp = () => {
         <PricingModal 
           onClose={() => setShowPricingModal(false)}
           onSuccess={handlePlanUpgrade}
+        />
+      )}
+      
+      {/* Templates Modal */}
+      {showTemplates && (
+        <Templates 
+          onSelectTemplate={handleSelectTemplate}
+          onClose={() => setShowTemplates(false)}
         />
       )}
     </div>
