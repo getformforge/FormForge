@@ -300,37 +300,62 @@ const FormBuilderApp = () => {
         user={currentUser}
         onUserClick={() => setShowUserDashboard(true)}
         rightContent={
-          <Layout.Flex gap={2}>
-            <Button
-              variant={currentView === 'builder' ? 'primary' : 'ghost'}
-              size="sm"
-              onClick={() => setCurrentView('builder')}
-            >
-              Builder
-            </Button>
-            <Button
-              variant={currentView === 'preview' ? 'primary' : 'ghost'}
-              size="sm"
-              leftIcon={<Eye size={16} />}
-              onClick={() => setCurrentView('preview')}
-            >
-              Preview
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon={<Settings size={16} />}
-              onClick={() => setShowTemplates(true)}
-            >
-              Templates
-            </Button>
-          </Layout.Flex>
+          <Button
+            variant="secondary"
+            size="sm"
+            leftIcon={<Settings size={16} />}
+            onClick={() => setShowTemplates(true)}
+          >
+            Templates
+          </Button>
         }
       />
 
       <Layout.Section padding="lg">
         <Layout.Container>
           <PlanLimits onUpgrade={() => setShowPricingModal(true)} refreshTrigger={statsRefreshTrigger} />
+
+          {/* Form Builder with integrated preview toggle */}
+          <div style={{ marginBottom: theme.spacing[6] }}>
+            <Layout.Flex justify="space-between" align="center" style={{ marginBottom: theme.spacing[6] }}>
+              <div>
+                <h2 style={{
+                  fontSize: theme.typography.fontSize['2xl'],
+                  fontWeight: theme.typography.fontWeight.bold,
+                  color: '#ffffff',
+                  margin: 0,
+                  marginBottom: theme.spacing[1]
+                }}>
+                  Form Builder
+                </h2>
+                <p style={{
+                  fontSize: theme.typography.fontSize.base,
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  margin: 0
+                }}>
+                  {currentView === 'builder' ? 'Design your form with advanced field types' : 'Preview and test your form'}
+                </p>
+              </div>
+              
+              <Layout.Flex gap={2}>
+                <Button
+                  variant={currentView === 'builder' ? 'primary' : 'secondary'}
+                  size="md"
+                  onClick={() => setCurrentView('builder')}
+                >
+                  Builder
+                </Button>
+                <Button
+                  variant={currentView === 'preview' ? 'primary' : 'secondary'}
+                  size="md"
+                  leftIcon={<Eye size={16} />}
+                  onClick={() => setCurrentView('preview')}
+                >
+                  Preview & Test
+                </Button>
+              </Layout.Flex>
+            </Layout.Flex>
+          </div>
 
           {currentView === 'builder' && (
             <EnhancedFormBuilder
