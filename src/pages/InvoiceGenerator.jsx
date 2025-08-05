@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { ArrowRight, Check, Download, Star, Users, Clock } from 'lucide-react';
 import { invoiceTemplate } from '../templates/invoiceTemplate';
 import SEOHead from '../components/SEOHead';
+import Layout from '../components/layout/Layout';
+import Button from '../components/ui/Button';
+import Card from '../components/ui/Card';
+import { theme } from '../styles/theme';
 
 const InvoiceGenerator = ({ onStartInvoice }) => {
   const [email, setEmail] = useState('');
