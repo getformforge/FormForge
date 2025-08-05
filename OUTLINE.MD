@@ -740,6 +740,7 @@ Advanced Capabilities:
    - HomePage improvements: unified template selection, auth flow, proper section ordering
    - Template loading fixes: immediate field updates, proper state clearing, forced re-rendering
    - Button styling consistency: fixed Submit Form button on public pages to match application design
+   - UserDashboard consistency: same user popup available on HomePage and FormBuilderApp
 
 **Technical Implementation Details**:
 ```javascript
