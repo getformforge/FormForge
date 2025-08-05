@@ -19,23 +19,13 @@ const Button = ({
       background: 'linear-gradient(135deg, #ff6b35 0%, #f97316 100%)',
       color: '#ffffff',
       border: 'none',
-      boxShadow: '0 2px 12px rgba(255, 107, 53, 0.25)',
-      '&:hover': !disabled && {
-        background: 'linear-gradient(135deg, #ea580c 0%, #dc2626 100%)',
-        transform: 'translateY(-1px)',
-        boxShadow: '0 4px 20px rgba(255, 107, 53, 0.35)'
-      }
+      boxShadow: '0 2px 12px rgba(255, 107, 53, 0.25)'
     },
     secondary: {
       background: '#ffffff',
       color: theme.colors.secondary[700],
       border: `2px solid ${theme.colors.secondary[200]}`,
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-      '&:hover': !disabled && {
-        background: theme.colors.secondary[50],
-        color: theme.colors.secondary[800],
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
-      }
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)'
     },
     success: {
       background: theme.gradients.success,
@@ -46,12 +36,7 @@ const Button = ({
     ghost: {
       background: 'transparent',
       color: theme.colors.secondary[600],
-      border: '2px solid transparent',
-      '&:hover': !disabled && {
-        background: '#ffffff',
-        color: theme.colors.secondary[700],
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)'
-      }
+      border: '2px solid transparent'
     },
     danger: {
       background: 'linear-gradient(45deg, #ef4444, #dc2626)',
@@ -121,6 +106,32 @@ const Button = ({
       onClick={handleClick}
       disabled={disabled || loading}
       className={className}
+      onMouseEnter={(e) => {
+        if (!disabled && !loading) {
+          if (variant === 'primary') {
+            e.target.style.background = 'linear-gradient(135deg, #ea580c 0%, #dc2626 100%)';
+            e.target.style.transform = 'translateY(-1px)';
+            e.target.style.boxShadow = '0 4px 20px rgba(255, 107, 53, 0.35)';
+          } else if (variant === 'secondary') {
+            e.target.style.background = '#f8fafc';
+            e.target.style.color = '#475569';
+            e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+          }
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!disabled && !loading) {
+          if (variant === 'primary') {
+            e.target.style.background = 'linear-gradient(135deg, #ff6b35 0%, #f97316 100%)';
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 2px 12px rgba(255, 107, 53, 0.25)';
+          } else if (variant === 'secondary') {
+            e.target.style.background = '#ffffff';
+            e.target.style.color = '#374151';
+            e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.06)';
+          }
+        }
+      }}
       {...props}
     >
       {loading && (
