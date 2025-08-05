@@ -1,10 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Download, FileText, Plus, Trash2, Save, FolderOpen, ChevronUp, ChevronDown, 
          Type, Mail, Hash, Calendar, FileUp, CheckSquare, List, Sparkles, Star, PenTool, 
-         Share, Copy, Eye, BarChart3 } from 'lucide-react';
+         Share, Copy, Eye, BarChart3, User } from 'lucide-react';
 import jsPDF from 'jspdf';
+import { useAuth } from './contexts/AuthContext';
+import Auth from './components/Auth';
+import UserDashboard from './components/UserDashboard';
+import PlanLimits from './components/PlanLimits';
+import PricingModal from './components/PricingModal';
+import { 
+  saveFormTemplate, 
+  getUserFormTemplates, 
+  deleteFormTemplate,
+  publishForm as publishFormToDb,
+  getPublishedForm,
+  submitFormResponse,
+  getFormSubmissions,
+  checkPlanLimits
+} from './services/formService';
 
 const FormPDFApp = () => {
+  const { currentUser } = useAuth();
+  const [showUserDashboard, setShowUserDashboard] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
+  
   const [formFields, setFormFields] = useState([
     { id: 1, type: 'text', label: 'Full Name', required: true },
     { id: 2, type: 'email', label: 'Email Address', required: true }
@@ -24,13 +43,17 @@ const FormPDFApp = () => {
   const [formSubmissions, setFormSubmissions] = useState([]);
   const [currentView, setCurrentView] = useState('builder'); // builder, shared-form, submissions
   
-  // Load saved templates from localStorage on mount
+  // Load saved templates from database on mount
   useEffect(() => {
-    const templates = localStorage.getItem('formForgeTemplates');
-    if (templates) {
-      setSavedTemplates(JSON.parse(templates));
-    }
-  }, []);
+    const loadUserTemplates = async () => {
+      if (currentUser) {
+        const templates = await getUserFormTemplates(currentUser.uid);
+        setSavedTemplates(templates);
+      }
+    };
+    
+    loadUserTemplates();
+  }, [currentUser]);
 
   const addField = (type) => {
     const newField = {
@@ -83,9 +106,21 @@ const FormPDFApp = () => {
     setFormData({ ...formData, [fieldId]: value });
   };
   
-  const saveTemplate = () => {
+  const saveTemplate = async () => {
     if (!templateName.trim()) {
       alert('Please enter a template name');
+      return;
+    }
+    
+    if (!currentUser) {
+      alert('Please sign in to save templates');
+      return;
+    }
+    
+    // Check plan limits
+    const canCreateForm = await checkPlanLimits(currentUser.uid, 'create_form');
+    if (!canCreateForm) {
+      alert('❌ You have reached your plan limit for forms. Please upgrade to create more forms.');
       return;
     }
     
@@ -96,13 +131,17 @@ const FormPDFApp = () => {
       createdAt: new Date().toLocaleDateString()
     };
     
-    const updatedTemplates = [...savedTemplates, newTemplate];
-    setSavedTemplates(updatedTemplates);
-    localStorage.setItem('formForgeTemplates', JSON.stringify(updatedTemplates));
+    const success = await saveFormTemplate(currentUser.uid, newTemplate);
     
-    setShowSaveDialog(false);
-    setTemplateName('');
-    alert('✅ FormForge template saved successfully!');
+    if (success) {
+      const templates = await getUserFormTemplates(currentUser.uid);
+      setSavedTemplates(templates);
+      setShowSaveDialog(false);
+      setTemplateName('');
+      alert('✅ FormForge template saved successfully!');
+    } else {
+      alert('❌ Failed to save template. Please try again.');
+    }
   };
   
   const loadTemplate = (template) => {
@@ -112,11 +151,18 @@ const FormPDFApp = () => {
     alert(`✅ Loaded template: ${template.name}`);
   };
   
-  const deleteTemplate = (templateId) => {
+  const deleteTemplate = async (templateId) => {
+    if (!currentUser) return;
+    
     if (confirm('Are you sure you want to delete this template?')) {
-      const updatedTemplates = savedTemplates.filter(t => t.id !== templateId);
-      setSavedTemplates(updatedTemplates);
-      localStorage.setItem('formForgeTemplates', JSON.stringify(updatedTemplates));
+      const success = await deleteFormTemplate(currentUser.uid, templateId);
+      
+      if (success) {
+        const templates = await getUserFormTemplates(currentUser.uid);
+        setSavedTemplates(templates);
+      } else {
+        alert('❌ Failed to delete template. Please try again.');
+      }
     }
   };
 
@@ -373,7 +419,19 @@ const FormPDFApp = () => {
     return Math.random().toString(36).substr(2, 9);
   };
 
-  const publishForm = () => {
+  const publishForm = async () => {
+    if (!currentUser) {
+      alert('Please sign in to publish forms');
+      return;
+    }
+    
+    // Check plan limits for form creation
+    const canCreateForm = await checkPlanLimits(currentUser.uid, 'create_form');
+    if (!canCreateForm) {
+      alert('❌ You have reached your plan limit for forms. Please upgrade to create more forms.');
+      return;
+    }
+    
     const formId = generateFormId();
     const publishedForm = {
       id: formId,
@@ -383,42 +441,25 @@ const FormPDFApp = () => {
       submissions: []
     };
     
-    // Save to localStorage (in real app, this would be a database)
-    const publishedForms = JSON.parse(localStorage.getItem('publishedForms') || '[]');
-    publishedForms.push(publishedForm);
-    localStorage.setItem('publishedForms', JSON.stringify(publishedForms));
+    const success = await publishFormToDb(currentUser.uid, publishedForm);
     
-    setCurrentFormId(formId);
-    setShowShareDialog(true);
-  };
-
-  const submitForm = (formId, submissionData) => {
-    const publishedForms = JSON.parse(localStorage.getItem('publishedForms') || '[]');
-    const formIndex = publishedForms.findIndex(form => form.id === formId);
-    
-    if (formIndex !== -1) {
-      const submission = {
-        id: Date.now(),
-        data: submissionData,
-        submittedAt: new Date().toISOString()
-      };
-      
-      publishedForms[formIndex].submissions.push(submission);
-      localStorage.setItem('publishedForms', JSON.stringify(publishedForms));
-      
-      return true; // Success
+    if (success) {
+      setCurrentFormId(formId);
+      setShowShareDialog(true);
+    } else {
+      alert('❌ Failed to publish form. Please try again.');
     }
-    return false; // Form not found
   };
 
-  const loadSubmissions = () => {
+  const submitForm = async (formId, submissionData) => {
+    return await submitFormResponse(formId, submissionData);
+  };
+
+  const loadSubmissions = async () => {
     if (currentFormId) {
-      const publishedForms = JSON.parse(localStorage.getItem('publishedForms') || '[]');
-      const form = publishedForms.find(form => form.id === currentFormId);
-      if (form) {
-        setFormSubmissions(form.submissions || []);
-        setShowSubmissionsDialog(true);
-      }
+      const submissions = await getFormSubmissions(currentFormId);
+      setFormSubmissions(submissions);
+      setShowSubmissionsDialog(true);
     }
   };
 
@@ -436,6 +477,23 @@ const FormPDFApp = () => {
       document.body.removeChild(textArea);
       alert('🎉 Share link copied to clipboard!');
     });
+  };
+
+  const handlePlanUpgrade = async (newPlan) => {
+    try {
+      // In a real app, you would update the user's plan in the database
+      // and handle the Stripe subscription creation on the backend
+      console.log(`Upgrading user ${currentUser.uid} to ${newPlan} plan`);
+      
+      // For demo purposes, show success message
+      alert(`🎉 Successfully upgraded to ${newPlan.charAt(0).toUpperCase() + newPlan.slice(1)} plan!`);
+      
+      // Refresh the page to update the user's plan
+      window.location.reload();
+    } catch (error) {
+      console.error('Plan upgrade error:', error);
+      alert('❌ Failed to upgrade plan. Please try again.');
+    }
   };
 
   const styles = {
@@ -1141,12 +1199,42 @@ const FormPDFApp = () => {
     );
   };
 
+  // Show auth component if user is not authenticated
+  if (!currentUser) {
+    return <Auth />;
+  }
+
   return (
     <div style={styles.container}>
       <div style={styles.maxWidth}>
         <header style={styles.header}>
-          <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px'}}>
+          <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px'}}>
+            <div style={{flex: 1}} />
             <h1 style={styles.title}>FormForge</h1>
+            <div style={{flex: 1, display: 'flex', justifyContent: 'flex-end'}}>
+              {currentUser && (
+                <button
+                  onClick={() => setShowUserDashboard(true)}
+                  style={{
+                    padding: '12px 16px',
+                    background: 'rgba(255, 107, 53, 0.2)',
+                    border: '2px solid rgba(255, 107, 53, 0.4)',
+                    borderRadius: '12px',
+                    color: '#ff6b35',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  <User size={16} />
+                  {currentUser.displayName || 'Account'}
+                </button>
+              )}
+            </div>
           </div>
           <p style={styles.subtitle}>Forge professional documents from simple forms with our intelligent builder</p>
           <div style={{marginTop: '32px', display: 'flex', justifyContent: 'center', gap: '32px', flexWrap: 'wrap'}}>
@@ -1209,6 +1297,8 @@ const FormPDFApp = () => {
                 </button>
               </div>
             </div>
+
+            <PlanLimits onUpgrade={() => setShowPricingModal(true)} />
 
             {!isPreview ? (
               <>
@@ -1634,6 +1724,19 @@ const FormPDFApp = () => {
             </div>
           </div>
         </div>
+      )}
+      
+      {/* User Dashboard */}
+      {showUserDashboard && (
+        <UserDashboard onClose={() => setShowUserDashboard(false)} />
+      )}
+      
+      {/* Pricing Modal */}
+      {showPricingModal && (
+        <PricingModal 
+          onClose={() => setShowPricingModal(false)}
+          onSuccess={handlePlanUpgrade}
+        />
       )}
     </div>
   );
