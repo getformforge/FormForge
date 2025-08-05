@@ -140,7 +140,7 @@ const HomePage = ({ onNavigate }) => {
             <h1 style={{
               fontSize: theme.typography.fontSize['4xl'],
               fontWeight: theme.typography.fontWeight.bold,
-              color: '#ffffff',
+              color: theme.colors.secondary[900],
               marginBottom: theme.spacing[6],
               lineHeight: theme.typography.lineHeight.tight,
               maxWidth: '800px',
@@ -151,7 +151,7 @@ const HomePage = ({ onNavigate }) => {
             
             <p style={{
               fontSize: theme.typography.fontSize.xl,
-              color: 'rgba(255, 255, 255, 0.8)',
+              color: theme.colors.secondary[600],
               marginBottom: theme.spacing[10],
               lineHeight: theme.typography.lineHeight.relaxed,
               maxWidth: '600px',
@@ -192,7 +192,7 @@ const HomePage = ({ onNavigate }) => {
                   </div>
                   <div style={{
                     fontSize: theme.typography.fontSize.sm,
-                    color: 'rgba(255, 255, 255, 0.7)',
+                    color: theme.colors.secondary[500],
                     fontWeight: theme.typography.fontWeight.medium
                   }}>
                     {stat.label}
@@ -211,14 +211,14 @@ const HomePage = ({ onNavigate }) => {
             <h2 style={{
               fontSize: theme.typography.fontSize['3xl'],
               fontWeight: theme.typography.fontWeight.bold,
-              color: '#ffffff',
+              color: theme.colors.secondary[900],
               marginBottom: theme.spacing[4]
             }}>
               Why FormForge?
             </h2>
             <p style={{
               fontSize: theme.typography.fontSize.lg,
-              color: 'rgba(255, 255, 255, 0.7)',
+              color: theme.colors.secondary[600],
               maxWidth: '600px',
               margin: '0 auto'
             }}>
@@ -269,14 +269,14 @@ const HomePage = ({ onNavigate }) => {
             <h2 style={{
               fontSize: theme.typography.fontSize['3xl'],
               fontWeight: theme.typography.fontWeight.bold,
-              color: '#ffffff',
+              color: theme.colors.secondary[900],
               marginBottom: theme.spacing[4]
             }}>
               Professional Templates
             </h2>
             <p style={{
               fontSize: theme.typography.fontSize.lg,
-              color: 'rgba(255, 255, 255, 0.7)',
+              color: theme.colors.secondary[600],
               maxWidth: '600px',
               margin: '0 auto'
             }}>
@@ -345,14 +345,14 @@ const HomePage = ({ onNavigate }) => {
                 <h3 style={{
                   fontSize: theme.typography.fontSize.xl,
                   fontWeight: theme.typography.fontWeight.bold,
-                  color: '#ffffff',
+                  color: theme.colors.secondary[900],
                   marginBottom: theme.spacing[3]
                 }}>
                   {template.title}
                 </h3>
                 
                 <p style={{
-                  color: 'rgba(255, 255, 255, 0.7)',
+                  color: theme.colors.secondary[600],
                   lineHeight: theme.typography.lineHeight.relaxed,
                   marginBottom: theme.spacing[6]
                 }}>
@@ -375,7 +375,7 @@ const HomePage = ({ onNavigate }) => {
             <h2 style={{
               fontSize: theme.typography.fontSize['3xl'],
               fontWeight: theme.typography.fontWeight.bold,
-              color: '#ffffff',
+              color: theme.colors.secondary[900],
               marginBottom: theme.spacing[4]
             }}>
               Trusted by Professionals

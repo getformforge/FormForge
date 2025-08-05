@@ -85,7 +85,7 @@ const CardTitle = ({ children, className = '', style = {} }) => {
       style={{
         fontSize: theme.typography.fontSize['2xl'],
         fontWeight: theme.typography.fontWeight.bold,
-        color: '#ffffff',
+        color: theme.colors.secondary[900],
         margin: 0,
         marginBottom: theme.spacing[2],
         lineHeight: theme.typography.lineHeight.tight,
@@ -103,7 +103,7 @@ const CardSubtitle = ({ children, className = '', style = {} }) => {
     <p 
       style={{
         fontSize: theme.typography.fontSize.base,
-        color: 'rgba(255, 255, 255, 0.7)',
+        color: theme.colors.secondary[600],
         margin: 0,
         lineHeight: theme.typography.lineHeight.relaxed,
         ...style
@@ -134,7 +134,7 @@ const CardFooter = ({ children, className = '', style = {} }) => {
       style={{
         marginTop: theme.spacing[6],
         paddingTop: theme.spacing[6],
-        borderTop: `1px solid rgba(255, 255, 255, 0.1)`,
+        borderTop: `1px solid ${theme.colors.secondary[200]}`,
         ...style
       }}
       className={className}

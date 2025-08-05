@@ -383,13 +383,13 @@ const FieldEditor = ({
     <div style={{
       border: `1px solid rgba(255, 107, 53, 0.3)`,
       borderRadius: theme.borderRadius.lg,
-      background: 'rgba(255, 255, 255, 0.05)',
+      background: '#ffffff',
       overflow: 'hidden'
     }}>
       {/* Field Header */}
       <div style={{
         padding: theme.spacing[4],
-        borderBottom: `1px solid rgba(255, 107, 53, 0.2)`,
+        borderBottom: `1px solid ${theme.colors.secondary[200]}`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between'
@@ -398,7 +398,7 @@ const FieldEditor = ({
           <div style={{
             padding: theme.spacing[2],
             borderRadius: theme.borderRadius.md,
-            background: 'rgba(255, 107, 53, 0.2)',
+            background: `${theme.colors.primary[500]}20`,
             color: theme.colors.primary[500]
           }}>
             {getFieldIcon(field.type)}
@@ -413,7 +413,7 @@ const FieldEditor = ({
                 background: 'transparent',
                 border: 'none',
                 outline: 'none',
-                color: '#ffffff',
+                color: theme.colors.secondary[900],
                 fontSize: theme.typography.fontSize.base,
                 fontWeight: theme.typography.fontWeight.medium,
                 width: '200px'
@@ -421,7 +421,7 @@ const FieldEditor = ({
             />
             <div style={{
               fontSize: theme.typography.fontSize.xs,
-              color: 'rgba(255, 255, 255, 0.6)',
+              color: theme.colors.secondary[500],
               textTransform: 'capitalize'
             }}>
               {field.type} • {field.required ? 'Required' : 'Optional'}
@@ -479,7 +479,7 @@ const FieldEditor = ({
                 display: 'block',
                 fontSize: theme.typography.fontSize.sm,
                 fontWeight: theme.typography.fontWeight.medium,
-                color: 'rgba(255, 255, 255, 0.8)',
+                color: theme.colors.secondary[700],
                 marginBottom: theme.spacing[2]
               }}>
                 Placeholder
@@ -491,10 +491,10 @@ const FieldEditor = ({
                 style={{
                   width: '100%',
                   padding: theme.spacing[2],
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: `1px solid rgba(255, 255, 255, 0.2)`,
+                  background: theme.colors.secondary[50],
+                  border: `1px solid ${theme.colors.secondary[200]}`,
                   borderRadius: theme.borderRadius.md,
-                  color: '#ffffff',
+                  color: theme.colors.secondary[900],
                   outline: 'none'
                 }}
               />
@@ -506,7 +506,7 @@ const FieldEditor = ({
                 alignItems: 'center',
                 gap: theme.spacing[2],
                 fontSize: theme.typography.fontSize.sm,
-                color: 'rgba(255, 255, 255, 0.8)'
+                color: theme.colors.secondary[700]
               }}>
                 <input
                   type="checkbox"
@@ -525,7 +525,7 @@ const FieldEditor = ({
                 display: 'block',
                 fontSize: theme.typography.fontSize.sm,
                 fontWeight: theme.typography.fontWeight.medium,
-                color: 'rgba(255, 255, 255, 0.8)',
+                color: theme.colors.secondary[700],
                 marginBottom: theme.spacing[2]
               }}>
                 Options (one per line)
@@ -539,10 +539,10 @@ const FieldEditor = ({
                 style={{
                   width: '100%',
                   padding: theme.spacing[3],
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: `1px solid rgba(255, 255, 255, 0.2)`,
+                  background: theme.colors.secondary[50],
+                  border: `1px solid ${theme.colors.secondary[200]}`,
                   borderRadius: theme.borderRadius.md,
-                  color: '#ffffff',
+                  color: theme.colors.secondary[900],
                   outline: 'none',
                   resize: 'vertical'
                 }}
