@@ -25,7 +25,7 @@ const PlanLimits = ({ onUpgrade, refreshTrigger }) => {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', color: '#ffffff', padding: '20px' }}>
+      <div style={{ textAlign: 'center', color: '#1f2937', padding: '20px' }}>
         Loading usage...
       </div>
     );
@@ -63,7 +63,7 @@ const PlanLimits = ({ onUpgrade, refreshTrigger }) => {
     title: {
       fontSize: '16px',
       fontWeight: '700',
-      color: '#ffffff',
+      color: '#1f2937',
       display: 'flex',
       alignItems: 'center',
       gap: '8px'
@@ -91,7 +91,7 @@ const PlanLimits = ({ onUpgrade, refreshTrigger }) => {
       marginBottom: '16px'
     },
     usageItem: {
-      background: 'rgba(255, 255, 255, 0.05)',
+      background: 'rgba(255, 255, 255, 0.3)',
       borderRadius: '8px',
       padding: '12px'
     },
@@ -103,18 +103,18 @@ const PlanLimits = ({ onUpgrade, refreshTrigger }) => {
     },
     usageLabel: {
       fontSize: '14px',
-      color: 'rgba(255,255,255,0.7)',
+      color: '#4b5563',
       fontWeight: '500'
     },
     usageValue: {
       fontSize: '14px',
       fontWeight: '700',
-      color: '#ffffff'
+      color: '#1f2937'
     },
     progressBar: {
       width: '100%',
       height: '6px',
-      backgroundColor: 'rgba(255,255,255,0.1)',
+      backgroundColor: 'rgba(255,255,255,0.2)',
       borderRadius: '3px',
       overflow: 'hidden'
     },
