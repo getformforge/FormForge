@@ -6,6 +6,7 @@ import Card from '../components/ui/Card';
 import Header from '../components/layout/Header';
 import Templates from '../components/Templates';
 import Auth from '../components/Auth';
+import UserDashboard from '../components/UserDashboard';
 import { useAuth } from '../contexts/AuthContext';
 import { theme } from '../styles/theme';
 
@@ -13,6 +14,7 @@ const HomePage = ({ onNavigate }) => {
   const { currentUser } = useAuth();
   const [showTemplates, setShowTemplates] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [showUserDashboard, setShowUserDashboard] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
 
   const handleTemplateSelect = (templateFields, templateName) => {
@@ -165,7 +167,7 @@ const HomePage = ({ onNavigate }) => {
         title="FormForge"
         showHomeButton={false}
         user={currentUser}
-        onUserClick={() => {/* TODO: Add user dashboard */}}
+        onUserClick={() => setShowUserDashboard(true)}
         rightContent={
           currentUser ? (
             <Button
@@ -525,6 +527,11 @@ const HomePage = ({ onNavigate }) => {
           onSelectTemplate={handleTemplateSelect}
           onClose={() => setShowTemplates(false)}
         />
+      )}
+
+      {/* User Dashboard Modal */}
+      {showUserDashboard && (
+        <UserDashboard onClose={() => setShowUserDashboard(false)} />
       )}
 
       {/* Auth Modal */}
