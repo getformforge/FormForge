@@ -480,17 +480,18 @@ const FormBuilderApp = () => {
 
                 {formFields.length > 0 && (
                   <Card.Footer>
-                    <Button
-                      variant="primary"
-                      size="md"
-                      leftIcon={<Download size={16} />}
-                      onClick={generatePDF}
-                      disabled={isGeneratingPDF}
-                      loading={isGeneratingPDF}
-                      style={{ width: '100%' }}
-                    >
-                      {isGeneratingPDF ? 'Generating PDF...' : 'Generate PDF'}
-                    </Button>
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      <Button
+                        variant="primary"
+                        size="md"
+                        leftIcon={<Download size={16} />}
+                        onClick={generatePDF}
+                        disabled={isGeneratingPDF}
+                        loading={isGeneratingPDF}
+                      >
+                        {isGeneratingPDF ? 'Generating PDF...' : 'Generate PDF'}
+                      </Button>
+                    </div>
                   </Card.Footer>
                 )}
               </Card>
