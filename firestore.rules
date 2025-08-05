@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users can read and write their own user document
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Form templates - users can manage their own saved templates
+    match /formTemplates/{templateId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Published forms - owners can create/read/update, public can read
+    match /forms/{formId} {
+      // Form owners can create, read, and update their forms
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId;
+      allow read, update: if request.auth != null && request.auth.uid == resource.data.ownerId;
+      
+      // Public users can read published forms (for form submission)
+      allow read: if resource.data.isPublished == true;
+    }
+    
+    // Form submissions - owners can read, anyone can create submissions to published forms
+    match /submissions/{submissionId} {
+      // Form owners can read submissions for their forms
+      allow read: if request.auth != null && request.auth.uid == resource.data.formOwnerId;
+      
+      // Anyone can create submissions to published forms
+      allow create: if true;
+    }
+    
+    // Published forms collection (legacy - keeping for compatibility)
+    match /publishedForms/{formId} {
+      // Form owners can create and manage their published forms
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update: if request.auth != null && request.auth.uid == resource.data.userId;
+      
+      // Public users can read published forms
+      allow read: if true;
+      
+      // Anyone can update submissions array (for form responses)
+      allow update: if true;
+    }
+  }
+}
