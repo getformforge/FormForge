@@ -3,7 +3,7 @@ import { AlertTriangle, Crown, Zap, TrendingUp } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserStats, getPlanLimits } from '../services/formService';
 
-const PlanLimits = ({ onUpgrade }) => {
+const PlanLimits = ({ onUpgrade, refreshTrigger }) => {
   const { currentUser, userPlan } = useAuth();
   const [stats, setStats] = useState({
     formCount: 0,
@@ -21,7 +21,7 @@ const PlanLimits = ({ onUpgrade }) => {
     };
 
     loadStats();
-  }, [currentUser]);
+  }, [currentUser, refreshTrigger]);
 
   if (loading) {
     return (

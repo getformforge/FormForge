@@ -87,6 +87,12 @@ export const publishForm = async (userId, formData) => {
       submissions: []
     });
     
+    // Update user form count when publishing a form
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      formCount: increment(1)
+    });
+    
     return true;
   } catch (error) {
     console.error('Error publishing form:', error);

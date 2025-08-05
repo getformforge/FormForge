@@ -23,6 +23,7 @@ const FormPDFApp = () => {
   const { currentUser } = useAuth();
   const [showUserDashboard, setShowUserDashboard] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [statsRefreshTrigger, setStatsRefreshTrigger] = useState(0);
   
   const [formFields, setFormFields] = useState([
     { id: 1, type: 'text', label: 'Full Name', required: true },
@@ -138,6 +139,7 @@ const FormPDFApp = () => {
       setSavedTemplates(templates);
       setShowSaveDialog(false);
       setTemplateName('');
+      setStatsRefreshTrigger(prev => prev + 1); // Refresh stats
       alert('✅ FormForge template saved successfully!');
     } else {
       alert('❌ Failed to save template. Please try again.');
@@ -446,6 +448,7 @@ const FormPDFApp = () => {
     if (success) {
       setCurrentFormId(formId);
       setShowShareDialog(true);
+      setStatsRefreshTrigger(prev => prev + 1); // Refresh stats
     } else {
       alert('❌ Failed to publish form. Please try again.');
     }
@@ -1298,7 +1301,7 @@ const FormPDFApp = () => {
               </div>
             </div>
 
-            <PlanLimits onUpgrade={() => setShowPricingModal(true)} />
+            <PlanLimits onUpgrade={() => setShowPricingModal(true)} refreshTrigger={statsRefreshTrigger} />
 
             {!isPreview ? (
               <>

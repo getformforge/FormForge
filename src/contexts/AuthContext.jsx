@@ -8,6 +8,7 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { ensureUserStats } from '../services/fixUserStats';
 
 const AuthContext = createContext();
 
@@ -66,6 +67,8 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (user) {
+        // Ensure user has proper stats (for existing users)
+        await ensureUserStats(user.uid);
         const plan = await getUserPlan(user.uid);
         setUserPlan(plan);
       } else {
