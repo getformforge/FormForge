@@ -5,7 +5,14 @@
       "Bash(pkill:*)",
       "WebFetch(domain:formforge.solutions)",
       "WebFetch(domain:formforge.com)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(git remote remove:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }
