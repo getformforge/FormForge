@@ -737,6 +737,7 @@ Advanced Capabilities:
    - Professional visual hierarchy with consistent button styling and smart disabled states
    - All buttons always visible for clear workflow understanding
    - Updated header branding and subtitle to accurately reflect form sharing capabilities
+   - HomePage improvements: unified template selection, auth flow, proper section ordering
 
 **Technical Implementation Details**:
 ```javascript
