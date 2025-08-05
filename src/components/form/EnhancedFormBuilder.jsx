@@ -434,14 +434,14 @@ const FieldEditor = ({
           </div>
         </Layout.Flex>
 
-        <Layout.Flex align="center" gap={2}>
+        <Layout.Flex align="center" gap={1}>
           <Button
             variant="ghost"
             size="sm"
             onClick={onMoveUp}
             disabled={index === 0}
           >
-            <ChevronUp size={16} />
+            <ChevronUp size={14} />
           </Button>
           <Button
             variant="ghost"
@@ -449,28 +449,28 @@ const FieldEditor = ({
             onClick={onMoveDown}
             disabled={index === totalFields - 1}
           >
-            <ChevronDown size={16} />
+            <ChevronDown size={14} />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={onDuplicate}
           >
-            <Copy size={16} />
+            <Copy size={14} />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setIsExpanded(!isExpanded)}
           >
-            <Settings size={16} />
+            <Settings size={14} />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={onRemove}
           >
-            <Trash2 size={16} />
+            <Trash2 size={14} />
           </Button>
         </Layout.Flex>
       </div>
