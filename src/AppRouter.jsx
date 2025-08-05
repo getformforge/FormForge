@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 import FormBuilderApp from './FormBuilderApp';
 import InvoiceGenerator from './pages/InvoiceGenerator';
 import ContractGenerator from './pages/ContractGenerator';
+import PublicFormPage from './pages/PublicFormPage';
 import { templates } from './templates';
 
 const AppRouter = () => {
@@ -62,6 +63,9 @@ const AppRouter = () => {
           
           {/* Form Builder Application */}
           <Route path="/builder" element={<FormBuilderApp />} />
+          
+          {/* Public Form Sharing */}
+          <Route path="/form/:formId" element={<PublicFormPage />} />
           
           {/* SEO Landing Pages */}
           <Route 
