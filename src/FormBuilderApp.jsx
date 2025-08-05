@@ -405,8 +405,9 @@ const FormBuilderApp = () => {
                 {formFields.length > 0 && (
                   <Card.Footer>
                     <Button
-                      size="lg"
-                      leftIcon={<Download size={20} />}
+                      variant="primary"
+                      size="md"
+                      leftIcon={<Download size={16} />}
                       onClick={generatePDF}
                       disabled={isGeneratingPDF}
                       loading={isGeneratingPDF}
