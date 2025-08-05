@@ -4,8 +4,8 @@ import { Elements, CardElement, useStripe, useElements } from '@stripe/react-str
 import { Crown, Zap, Star, Check, CreditCard, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
-// Replace with your actual Stripe publishable key
-const stripePromise = loadStripe('pk_test_YOUR_STRIPE_PUBLISHABLE_KEY_HERE');
+// Stripe publishable key (safe to use in frontend)
+const stripePromise = loadStripe('pk_test_51RsoCaEvcCT1QyXDXgbvUupcT1yB3Czpy9hS2Hq2Hdme9pg2Yz5Rn1zCBi2wteVW1dcHyip0a3BzMwmItkJWE5UM005jhF23IY');
 
 const CheckoutForm = ({ plan, onSuccess, onCancel }) => {
   const stripe = useStripe();
@@ -18,7 +18,7 @@ const CheckoutForm = ({ plan, onSuccess, onCancel }) => {
     pro: {
       name: 'Pro',
       price: '$9',
-      priceId: 'price_pro_monthly', // Replace with actual Stripe price ID
+      priceId: 'price_1RsoIhEvcCT1QyXDvNf9c7DD',
       features: [
         'Unlimited forms',
         '1,000 submissions/month',
@@ -30,7 +30,7 @@ const CheckoutForm = ({ plan, onSuccess, onCancel }) => {
     business: {
       name: 'Business',
       price: '$29',
-      priceId: 'price_business_monthly', // Replace with actual Stripe price ID
+      priceId: 'price_1RsoJEEvcCT1QyXDQjj1g8G1',
       features: [
         'Everything in Pro',
         '10,000 submissions/month',
