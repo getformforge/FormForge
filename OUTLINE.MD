@@ -735,6 +735,7 @@ Advanced Capabilities:
    - Integration with UserDashboard (clickable submissions stats)
    - Clear user journey: Build → Preview → Share → Collect → Analyze
    - Professional visual hierarchy with consistent button styling
+   - Generate PDF button properly styled to match application design
 
 **Technical Implementation Details**:
 ```javascript
