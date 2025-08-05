@@ -3,6 +3,7 @@ import { User, LogOut, Crown, BarChart3, FileText, Mail, Calendar, CreditCard } 
 import { useAuth } from '../contexts/AuthContext';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import SubmissionsDashboard from './SubmissionsDashboard';
 
 const UserDashboard = ({ onClose }) => {
   const { currentUser, userPlan, logout } = useAuth();
@@ -12,6 +13,7 @@ const UserDashboard = ({ onClose }) => {
     createdAt: null
   });
   const [loading, setLoading] = useState(true);
+  const [showSubmissions, setShowSubmissions] = useState(false);
 
   useEffect(() => {
     const fetchUserStats = async () => {
@@ -294,7 +296,22 @@ const UserDashboard = ({ onClose }) => {
             <div style={styles.statValue}>{userStats.formCount}</div>
             <div style={styles.statLabel}>Forms Created</div>
           </div>
-          <div style={styles.statCard}>
+          <div 
+            style={{
+              ...styles.statCard,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onClick={() => setShowSubmissions(true)}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 10px 25px rgba(255, 107, 53, 0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
             <div style={styles.statIcon}>
               <BarChart3 size={24} color="#ff6b35" />
             </div>
@@ -334,6 +351,10 @@ const UserDashboard = ({ onClose }) => {
           Member since {userStats.createdAt?.toLocaleDateString() || 'Unknown'}
         </div>
       </div>
+      
+      {showSubmissions && (
+        <SubmissionsDashboard onClose={() => setShowSubmissions(false)} />
+      )}
     </div>
   );
 };

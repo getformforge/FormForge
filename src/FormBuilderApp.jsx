@@ -6,6 +6,8 @@ import UserDashboard from './components/UserDashboard';
 import PlanLimits from './components/PlanLimits';
 import PricingModal from './components/PricingModal';
 import Templates from './components/Templates';
+import ShareFormModal from './components/ShareFormModal';
+import SubmissionsDashboard from './components/SubmissionsDashboard';
 import Layout from './components/layout/Layout';
 import Header from './components/layout/Header';
 import Button from './components/ui/Button';
@@ -46,6 +48,9 @@ const FormBuilderApp = () => {
   const [showUserDashboard, setShowUserDashboard] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showSubmissions, setShowSubmissions] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [statsRefreshTrigger, setStatsRefreshTrigger] = useState(0);
 
   // Check for template from landing pages on component mount
@@ -286,6 +291,37 @@ const FormBuilderApp = () => {
     alert(`✅ Template "${templateName}" loaded successfully!`);
   };
 
+  const handlePublishForm = async (formInfo) => {
+    setIsPublishing(true);
+
+    try {
+      if (formFields.length === 0) {
+        alert('❌ Please add at least one field to your form before publishing');
+        return { success: false };
+      }
+
+      const result = await publishFormToDb(currentUser.uid, {
+        title: formInfo.title,
+        description: formInfo.description,
+        fields: formFields
+      });
+
+      if (result.success) {
+        setStatsRefreshTrigger(prev => prev + 1);
+        return result;
+      } else {
+        alert(`❌ Error publishing form: ${result.error}`);
+        return { success: false };
+      }
+    } catch (error) {
+      console.error('Error publishing form:', error);
+      alert('❌ Error publishing form. Please try again.');
+      return { success: false };
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
   if (!currentUser) {
     return <Auth />;
   }
@@ -300,14 +336,32 @@ const FormBuilderApp = () => {
         user={currentUser}
         onUserClick={() => setShowUserDashboard(true)}
         rightContent={
-          <Button
-            variant="secondary"
-            size="sm"
-            leftIcon={<Settings size={16} />}
-            onClick={() => setShowTemplates(true)}
-          >
-            Templates
-          </Button>
+          <Layout.Flex gap={2}>
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<BarChart3 size={16} />}
+              onClick={() => setShowSubmissions(true)}
+            >
+              View Submissions
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<Share2 size={16} />}
+              onClick={() => setShowShareModal(true)}
+            >
+              Share Form
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<Settings size={16} />}
+              onClick={() => setShowTemplates(true)}
+            >
+              Templates
+            </Button>
+          </Layout.Flex>
         }
       />
 
@@ -497,6 +551,19 @@ const FormBuilderApp = () => {
           onSelectTemplate={handleSelectTemplate}
           onClose={() => setShowTemplates(false)}
         />
+      )}
+
+      {showShareModal && (
+        <ShareFormModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          onPublish={handlePublishForm}
+          isPublishing={isPublishing}
+        />
+      )}
+
+      {showSubmissions && (
+        <SubmissionsDashboard onClose={() => setShowSubmissions(false)} />
       )}
     </Layout>
   );
