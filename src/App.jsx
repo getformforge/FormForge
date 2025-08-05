@@ -1587,6 +1587,68 @@ const FormPDFApp = () => {
               Built to Last
             </div>
           </div>
+          
+          {/* Quick Start Templates */}
+          <div style={{marginTop: '32px', display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap'}}>
+            <a 
+              href="/invoice-generator" 
+              style={{
+                padding: '16px 24px',
+                background: 'linear-gradient(45deg, #ff6b35, #e63946)',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '12px',
+                fontWeight: '700',
+                fontSize: '16px',
+                boxShadow: '0 6px 20px rgba(255, 107, 53, 0.4)',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              💼 Invoice Generator
+            </a>
+            <a 
+              href="/contract-generator" 
+              style={{
+                padding: '16px 24px',
+                background: 'linear-gradient(45deg, #4CAF50, #2E7D57)',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '12px',
+                fontWeight: '700',
+                fontSize: '16px',
+                boxShadow: '0 6px 20px rgba(76, 175, 80, 0.4)',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              ⚖️ Contract Generator
+            </a>
+            <button
+              onClick={() => setShowTemplates(true)}
+              style={{
+                padding: '16px 24px',
+                background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '12px',
+                fontWeight: '700',
+                fontSize: '16px',
+                boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              🏥 More Templates
+            </button>
+          </div>
         </header>
 
         <div style={styles.grid}>
