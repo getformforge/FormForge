@@ -357,38 +357,16 @@ const HomePage = ({ onNavigate }) => {
               maxWidth: '600px',
               margin: '0 auto'
             }}>
-              Choose from our library of professionally designed templates or build your own custom form.
+              Browse our professionally designed templates. Use "Choose Your Template" above to get started.
             </p>
           </div>
 
           <Layout.Grid cols="auto" gap={6}>
             {templates.map((template, index) => (
               <Card key={index} variant="base" padding="lg" style={{
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
                 position: 'relative',
-                border: '2px solid rgba(255, 107, 53, 0.2)',
-                ':hover': {
-                  transform: 'translateY(-8px)',
-                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
-                }
-              }}
-              onClick={() => {
-                if (template.route) {
-                  window.location.href = template.route;
-                } else if (template.action) {
-                  template.action();
-                }
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-8px)';
-                e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.25)';
-              }}
-              >
+                border: '2px solid rgba(255, 107, 53, 0.2)'
+              }}>
                 {template.popular && (
                   <div style={{
                     position: 'absolute',
