@@ -319,14 +319,17 @@ const PublicFormPage = () => {
                   ))}
                 </div>
 
-                <div style={{ marginTop: theme.spacing[8] }}>
+                <div style={{ 
+                  marginTop: theme.spacing[8], 
+                  display: 'flex', 
+                  justifyContent: 'center' 
+                }}>
                   <Button
                     type="submit"
                     size="lg"
                     leftIcon={<Send size={20} />}
                     disabled={submitting}
                     loading={submitting}
-                    style={{ width: '100%' }}
                   >
                     {submitting ? 'Submitting...' : 'Submit Form'}
                   </Button>
