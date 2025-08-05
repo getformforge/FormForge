@@ -1,11 +1,52 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowRight, CheckCircle, FileText, Download, Users, Star, Zap, Shield, Clock, Target } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
+import Header from '../components/layout/Header';
+import Templates from '../components/Templates';
+import Auth from '../components/Auth';
+import { useAuth } from '../contexts/AuthContext';
 import { theme } from '../styles/theme';
 
 const HomePage = ({ onNavigate }) => {
+  const { currentUser } = useAuth();
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+
+  const handleTemplateSelect = (templateFields, templateName) => {
+    if (!currentUser) {
+      setSelectedTemplate({ fields: templateFields, name: templateName });
+      setShowAuth(true);
+      setShowTemplates(false);
+    } else {
+      // User is authenticated, proceed directly
+      loadTemplateAndNavigate(templateFields, templateName);
+    }
+  };
+
+  const loadTemplateAndNavigate = (templateFields, templateName) => {
+    // Store template in sessionStorage for the builder to pick up
+    sessionStorage.setItem('selectedTemplate', JSON.stringify({
+      fields: templateFields,
+      name: templateName
+    }));
+    
+    // Show confirmation and navigate
+    if (window.confirm(`Load "${templateName}" template in the form builder?`)) {
+      onNavigate('builder');
+    }
+  };
+
+  const handleAuthSuccess = () => {
+    setShowAuth(false);
+    if (selectedTemplate) {
+      loadTemplateAndNavigate(selectedTemplate.fields, selectedTemplate.name);
+      setSelectedTemplate(null);
+    }
+  };
+
   const features = [
     {
       icon: <Zap size={24} />,
@@ -119,6 +160,42 @@ const HomePage = ({ onNavigate }) => {
 
   return (
     <Layout variant="landing">
+      {/* Header */}
+      <Header
+        title="FormForge"
+        showHomeButton={false}
+        user={currentUser}
+        onUserClick={() => {/* TODO: Add user dashboard */}}
+        rightContent={
+          currentUser ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => onNavigate('builder')}
+            >
+              Go to Builder
+            </Button>
+          ) : (
+            <Layout.Flex gap={2}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowAuth(true)}
+              >
+                Sign In
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setShowAuth(true)}
+              >
+                Get Started
+              </Button>
+            </Layout.Flex>
+          )
+        }
+      />
+
       {/* Hero Section */}
       <Layout.Section padding="xl">
         <Layout.Container>
@@ -165,7 +242,7 @@ const HomePage = ({ onNavigate }) => {
               <Button 
                 size="xl" 
                 rightIcon={<ArrowRight size={20} />}
-                onClick={() => window.scrollTo({ top: 800, behavior: 'smooth' })}
+                onClick={() => setShowTemplates(true)}
               >
                 Choose Your Template
               </Button>
@@ -463,6 +540,19 @@ const HomePage = ({ onNavigate }) => {
           </Card>
         </Layout.Container>
       </Layout.Section>
+
+      {/* Templates Modal */}
+      {showTemplates && (
+        <Templates 
+          onSelectTemplate={handleTemplateSelect}
+          onClose={() => setShowTemplates(false)}
+        />
+      )}
+
+      {/* Auth Modal */}
+      {showAuth && (
+        <Auth onSuccess={handleAuthSuccess} onClose={() => setShowAuth(false)} />
+      )}
     </Layout>
   );
 };
