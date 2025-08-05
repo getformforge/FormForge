@@ -16,7 +16,8 @@ import {
   getPublishedForm,
   submitFormResponse,
   getFormSubmissions,
-  checkPlanLimits
+  checkPlanLimits,
+  trackPDFGeneration
 } from './services/formService';
 
 const FormPDFApp = () => {
@@ -376,6 +377,20 @@ const FormPDFApp = () => {
       return;
     }
     
+    // Check if user is logged in
+    if (!currentUser) {
+      alert('❌ Please sign in to generate PDFs');
+      return;
+    }
+    
+    // Check PDF generation limits
+    const canGeneratePDF = await checkPlanLimits(currentUser.uid, 'generate_pdf');
+    if (!canGeneratePDF) {
+      alert('❌ You have reached your monthly PDF generation limit. Please upgrade to generate more PDFs.');
+      setShowPricingModal(true);
+      return;
+    }
+    
     setIsGeneratingPDF(true);
     
     try {
@@ -405,6 +420,10 @@ const FormPDFApp = () => {
       // Download the PDF
       const fileName = `${pdfTemplate}-form-${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
+      
+      // Track PDF generation
+      await trackPDFGeneration(currentUser.uid);
+      setStatsRefreshTrigger(prev => prev + 1); // Refresh stats
       
       // Show success message
       alert(`✅ ${pdfTemplate.charAt(0).toUpperCase() + pdfTemplate.slice(1)} PDF downloaded successfully!`);

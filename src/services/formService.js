@@ -182,14 +182,16 @@ export const getUserStats = async (userId) => {
         formCount: data.formCount || 0,
         submissionCount: data.submissionCount || 0,
         plan: data.plan || 'free',
-        createdAt: data.createdAt?.toDate() || new Date()
+        createdAt: data.createdAt?.toDate() || new Date(),
+        pdfGenerations: data.pdfGenerations || {}
       };
     }
     return {
       formCount: 0,
       submissionCount: 0,
       plan: 'free',
-      createdAt: new Date()
+      createdAt: new Date(),
+      pdfGenerations: {}
     };
   } catch (error) {
     console.error('Error fetching user stats:', error);
@@ -197,7 +199,8 @@ export const getUserStats = async (userId) => {
       formCount: 0,
       submissionCount: 0,
       plan: 'free',
-      createdAt: new Date()
+      createdAt: new Date(),
+      pdfGenerations: {}
     };
   }
 };
@@ -209,18 +212,21 @@ export const getPlanLimits = (plan) => {
       return { 
         maxForms: -1, // unlimited
         maxSubmissions: 1000,
+        maxPDFsPerMonth: -1, // unlimited
         features: ['custom_branding', 'priority_support', 'advanced_fields']
       };
     case 'business':
       return { 
         maxForms: -1, // unlimited
         maxSubmissions: 10000,
+        maxPDFsPerMonth: -1, // unlimited
         features: ['custom_branding', 'priority_support', 'advanced_fields', 'white_label', 'api_access']
       };
     default: // free
       return { 
         maxForms: 3,
         maxSubmissions: 50,
+        maxPDFsPerMonth: 10, // 10 PDFs per month for free users
         features: []
       };
   }
@@ -236,11 +242,41 @@ export const checkPlanLimits = async (userId, action) => {
         return limits.maxForms === -1 || stats.formCount < limits.maxForms;
       case 'submit_form':
         return limits.maxSubmissions === -1 || stats.submissionCount < limits.maxSubmissions;
+      case 'generate_pdf':
+        // Check monthly PDF limit
+        const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+        const monthlyPDFs = stats.pdfGenerations?.[currentMonth] || 0;
+        return limits.maxPDFsPerMonth === -1 || monthlyPDFs < limits.maxPDFsPerMonth;
       default:
         return true;
     }
   } catch (error) {
     console.error('Error checking plan limits:', error);
+    return false;
+  }
+};
+
+// Track PDF generation
+export const trackPDFGeneration = async (userId) => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+    
+    // Get current user data
+    const userDoc = await getDoc(userRef);
+    const userData = userDoc.data() || {};
+    const pdfGenerations = userData.pdfGenerations || {};
+    const currentCount = pdfGenerations[currentMonth] || 0;
+    
+    // Update the count for current month
+    await updateDoc(userRef, {
+      [`pdfGenerations.${currentMonth}`]: currentCount + 1,
+      lastPDFGeneration: serverTimestamp()
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error tracking PDF generation:', error);
     return false;
   }
 };

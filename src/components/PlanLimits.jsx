@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, Crown, Zap, TrendingUp } from 'lucide-react';
+import { AlertTriangle, Crown, Zap, TrendingUp, FileText } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserStats, getPlanLimits } from '../services/formService';
 
@@ -32,13 +32,19 @@ const PlanLimits = ({ onUpgrade, refreshTrigger }) => {
   }
 
   const limits = getPlanLimits(userPlan);
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const monthlyPDFs = stats.pdfGenerations?.[currentMonth] || 0;
+  
   const formUsagePercent = limits.maxForms === -1 ? 0 : (stats.formCount / limits.maxForms) * 100;
   const submissionUsagePercent = limits.maxSubmissions === -1 ? 0 : (stats.submissionCount / limits.maxSubmissions) * 100;
+  const pdfUsagePercent = limits.maxPDFsPerMonth === -1 ? 0 : (monthlyPDFs / limits.maxPDFsPerMonth) * 100;
   
   const isFormLimitClose = formUsagePercent > 80;
   const isSubmissionLimitClose = submissionUsagePercent > 80;
+  const isPDFLimitClose = pdfUsagePercent > 80;
   const isFormLimitReached = limits.maxForms !== -1 && stats.formCount >= limits.maxForms;
   const isSubmissionLimitReached = limits.maxSubmissions !== -1 && stats.submissionCount >= limits.maxSubmissions;
+  const isPDFLimitReached = limits.maxPDFsPerMonth !== -1 && monthlyPDFs >= limits.maxPDFsPerMonth;
 
   const styles = {
     container: {
@@ -80,7 +86,7 @@ const PlanLimits = ({ onUpgrade, refreshTrigger }) => {
     },
     usageGrid: {
       display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
+      gridTemplateColumns: '1fr 1fr 1fr',
       gap: '16px',
       marginBottom: '16px'
     },
@@ -163,11 +169,12 @@ const PlanLimits = ({ onUpgrade, refreshTrigger }) => {
         </div>
       </div>
 
-      {(isFormLimitClose || isSubmissionLimitClose || isFormLimitReached || isSubmissionLimitReached) && (
+      {(isFormLimitClose || isSubmissionLimitClose || isPDFLimitClose || isFormLimitReached || isSubmissionLimitReached || isPDFLimitReached) && (
         <div style={styles.warning}>
           <AlertTriangle size={16} />
           {isFormLimitReached ? 'Form limit reached!' : 
            isSubmissionLimitReached ? 'Submission limit reached!' :
+           isPDFLimitReached ? 'Monthly PDF limit reached!' :
            'Approaching plan limits. Consider upgrading.'}
         </div>
       )}
@@ -194,6 +201,18 @@ const PlanLimits = ({ onUpgrade, refreshTrigger }) => {
           </div>
           <div style={styles.progressBar}>
             <div style={styles.progressFill(submissionUsagePercent, isSubmissionLimitReached)} />
+          </div>
+        </div>
+        
+        <div style={styles.usageItem}>
+          <div style={styles.usageHeader}>
+            <div style={styles.usageLabel}>PDFs/Month</div>
+            <div style={styles.usageValue}>
+              {monthlyPDFs}{limits.maxPDFsPerMonth === -1 ? '' : `/${limits.maxPDFsPerMonth}`}
+            </div>
+          </div>
+          <div style={styles.progressBar}>
+            <div style={styles.progressFill(pdfUsagePercent, isPDFLimitReached)} />
           </div>
         </div>
       </div>
