@@ -52,6 +52,7 @@ const FormBuilderApp = () => {
   const [showSubmissions, setShowSubmissions] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [statsRefreshTrigger, setStatsRefreshTrigger] = useState(0);
+  const [templateKey, setTemplateKey] = useState(Date.now());
 
   // Check for template from landing pages on component mount
   useEffect(() => {
@@ -67,6 +68,7 @@ const FormBuilderApp = () => {
           
           setFormFields(formFields);
           setFormData({});
+          setTemplateKey(Date.now()); // Force re-render
           sessionStorage.removeItem('selectedTemplate');
           
           setTimeout(() => {
@@ -286,8 +288,16 @@ const FormBuilderApp = () => {
   };
 
   const handleSelectTemplate = (templateFields, templateName) => {
-    setFormFields(templateFields);
-    setFormData({});
+    // Ensure all fields have unique IDs and clear existing data
+    const fieldsWithUniqueIds = templateFields.map((field, index) => ({
+      ...field,
+      id: Date.now() + index // Generate unique IDs
+    }));
+    
+    setFormFields(fieldsWithUniqueIds);
+    setFormData({}); // Clear all form data
+    setTemplateKey(Date.now()); // Force re-render
+    setCurrentView('builder'); // Switch to builder view to see the change
     alert(`✅ Template "${templateName}" loaded successfully!`);
   };
 
@@ -446,6 +456,7 @@ const FormBuilderApp = () => {
 
           {currentView === 'builder' && (
             <EnhancedFormBuilder
+              key={templateKey}
               onFieldsChange={handleFieldsChange}
               initialFields={formFields}
             />
