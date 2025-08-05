@@ -91,9 +91,10 @@ const PlanLimits = ({ onUpgrade, refreshTrigger }) => {
       marginBottom: '16px'
     },
     usageItem: {
-      background: 'rgba(255, 255, 255, 0.3)',
+      background: 'rgba(255, 255, 255, 0.7)',
       borderRadius: '8px',
-      padding: '12px'
+      padding: '12px',
+      border: '1px solid rgba(255, 255, 255, 0.8)'
     },
     usageHeader: {
       display: 'flex',
@@ -114,7 +115,7 @@ const PlanLimits = ({ onUpgrade, refreshTrigger }) => {
     progressBar: {
       width: '100%',
       height: '6px',
-      backgroundColor: 'rgba(255,255,255,0.2)',
+      backgroundColor: 'rgba(255,255,255,0.4)',
       borderRadius: '3px',
       overflow: 'hidden'
     },
