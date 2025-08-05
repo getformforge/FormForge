@@ -340,22 +340,6 @@ const FormBuilderApp = () => {
             <Button
               variant="secondary"
               size="sm"
-              leftIcon={<BarChart3 size={16} />}
-              onClick={() => setShowSubmissions(true)}
-            >
-              View Submissions
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon={<Share2 size={16} />}
-              onClick={() => setShowShareModal(true)}
-            >
-              Share Form
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
               leftIcon={<Settings size={16} />}
               onClick={() => setShowTemplates(true)}
             >
@@ -368,6 +352,56 @@ const FormBuilderApp = () => {
       <Layout.Section padding="lg">
         <Layout.Container>
           <PlanLimits onUpgrade={() => setShowPricingModal(true)} refreshTrigger={statsRefreshTrigger} />
+          
+          {formFields.length > 0 && currentView === 'preview' && (
+            <div style={{
+              background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+              border: `1px solid ${theme.colors.info[200]}`,
+              borderRadius: theme.borderRadius.xl,
+              padding: theme.spacing[6],
+              marginBottom: theme.spacing[6],
+              textAlign: 'center'
+            }}>
+              <h3 style={{
+                fontSize: theme.typography.fontSize.lg,
+                fontWeight: theme.typography.fontWeight.bold,
+                color: theme.colors.info[900],
+                margin: 0,
+                marginBottom: theme.spacing[2]
+              }}>
+                Ready to collect responses?
+              </h3>
+              <p style={{
+                fontSize: theme.typography.fontSize.base,
+                color: theme.colors.info[700],
+                margin: 0,
+                marginBottom: theme.spacing[4]
+              }}>
+                Share your form with others to start collecting responses automatically. 
+                You can view all submissions and export them as CSV files.
+              </p>
+              <Layout.Flex justify="center" gap={3}>
+                <Button
+                  variant="primary"
+                  leftIcon={<Share2 size={16} />}
+                  onClick={() => setShowShareModal(true)}
+                  style={{
+                    background: 'linear-gradient(45deg, #10b981, #059669)',
+                    border: 'none'
+                  }}
+                >
+                  Share Form & Collect Responses
+                </Button>
+                <Button
+                  variant="secondary"
+                  leftIcon={<BarChart3 size={16} />}
+                  onClick={() => setShowSubmissions(true)}
+                >
+                  View Submissions
+                </Button>
+              </Layout.Flex>
+            </div>
+          )}
 
           {/* Form Builder with integrated preview toggle */}
           <div style={{ marginBottom: theme.spacing[6] }}>
@@ -391,7 +425,7 @@ const FormBuilderApp = () => {
                 </p>
               </div>
               
-              <Layout.Flex gap={2}>
+              <Layout.Flex gap={2} align="center">
                 <Button
                   variant={currentView === 'builder' ? 'primary' : 'secondary'}
                   size="md"
@@ -407,6 +441,27 @@ const FormBuilderApp = () => {
                 >
                   Preview & Test
                 </Button>
+                
+                {formFields.length > 0 && (
+                  <div style={{ 
+                    marginLeft: theme.spacing[4], 
+                    paddingLeft: theme.spacing[4], 
+                    borderLeft: `1px solid ${theme.colors.secondary[200]}` 
+                  }}>
+                    <Button
+                      variant="primary"
+                      size="md"
+                      leftIcon={<Share2 size={16} />}
+                      onClick={() => setShowShareModal(true)}
+                      style={{
+                        background: 'linear-gradient(45deg, #10b981, #059669)',
+                        border: 'none'
+                      }}
+                    >
+                      Share Form & Collect Responses
+                    </Button>
+                  </div>
+                )}
               </Layout.Flex>
             </Layout.Flex>
           </div>
