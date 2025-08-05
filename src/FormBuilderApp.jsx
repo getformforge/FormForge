@@ -383,7 +383,25 @@ const FormBuilderApp = () => {
           {/* Form Builder with integrated preview toggle */}
           <div style={{ marginBottom: theme.spacing[6] }}>
             <Layout.Flex justify="space-between" align="center" style={{ marginBottom: theme.spacing[6] }}>
-              <div>
+              <Layout.Flex gap={2} align="center">
+                <Button
+                  variant={currentView === 'builder' ? 'primary' : 'secondary'}
+                  size="md"
+                  onClick={() => setCurrentView('builder')}
+                >
+                  Builder
+                </Button>
+                <Button
+                  variant={currentView === 'preview' ? 'primary' : 'secondary'}
+                  size="md"
+                  leftIcon={<Eye size={16} />}
+                  onClick={() => setCurrentView('preview')}
+                >
+                  Preview & Test
+                </Button>
+              </Layout.Flex>
+
+              <div style={{ textAlign: 'center' }}>
                 <h2 style={{
                   fontSize: theme.typography.fontSize['2xl'],
                   fontWeight: theme.typography.fontWeight.bold,
@@ -404,31 +422,24 @@ const FormBuilderApp = () => {
               
               <Layout.Flex gap={2} align="center">
                 <Button
-                  variant={currentView === 'builder' ? 'primary' : 'secondary'}
+                  variant="secondary"
                   size="md"
-                  onClick={() => setCurrentView('builder')}
+                  leftIcon={<Share2 size={16} />}
+                  onClick={() => setShowShareModal(true)}
+                  disabled={formFields.length === 0}
                 >
-                  Builder
+                  Share Form
                 </Button>
                 <Button
-                  variant={currentView === 'preview' ? 'primary' : 'secondary'}
+                  variant="primary"
                   size="md"
-                  leftIcon={<Eye size={16} />}
-                  onClick={() => setCurrentView('preview')}
+                  leftIcon={<Download size={16} />}
+                  onClick={generatePDF}
+                  disabled={isGeneratingPDF || formFields.length === 0}
+                  loading={isGeneratingPDF}
                 >
-                  Preview & Test
+                  {isGeneratingPDF ? 'Generating...' : 'Generate PDF'}
                 </Button>
-                
-                {formFields.length > 0 && (
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    leftIcon={<Share2 size={16} />}
-                    onClick={() => setShowShareModal(true)}
-                  >
-                    Share Form
-                  </Button>
-                )}
               </Layout.Flex>
             </Layout.Flex>
           </div>
@@ -478,22 +489,6 @@ const FormBuilderApp = () => {
                   )}
                 </Card.Content>
 
-                {formFields.length > 0 && (
-                  <Card.Footer>
-                    <div style={{ display: 'flex', justifyContent: 'center' }}>
-                      <Button
-                        variant="primary"
-                        size="md"
-                        leftIcon={<Download size={16} />}
-                        onClick={generatePDF}
-                        disabled={isGeneratingPDF}
-                        loading={isGeneratingPDF}
-                      >
-                        {isGeneratingPDF ? 'Generating PDF...' : 'Generate PDF'}
-                      </Button>
-                    </div>
-                  </Card.Footer>
-                )}
               </Card>
 
               <Card variant="glass" padding="lg">
