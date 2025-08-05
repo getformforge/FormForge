@@ -412,7 +412,7 @@ const FormBuilderApp = () => {
                       loading={isGeneratingPDF}
                       style={{ width: '100%' }}
                     >
-                      {isGeneratingPDF ? 'Generating PDF...' : 'Generate Professional PDF'}
+                      {isGeneratingPDF ? 'Generating PDF...' : 'Generate PDF'}
                     </Button>
                   </Card.Footer>
                 )}

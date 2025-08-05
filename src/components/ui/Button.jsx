@@ -16,13 +16,14 @@ const Button = ({
 }) => {
   const variants = {
     primary: {
-      background: theme.gradients.primary,
+      background: 'linear-gradient(135deg, #ff6b35 0%, #f97316 100%)',
       color: '#ffffff',
-      border: '2px solid transparent',
-      boxShadow: '0 4px 14px 0 rgba(255, 107, 53, 0.39)',
+      border: 'none',
+      boxShadow: '0 2px 12px rgba(255, 107, 53, 0.25)',
       '&:hover': !disabled && {
-        transform: 'translateY(-2px)',
-        boxShadow: '0 6px 20px 0 rgba(255, 107, 53, 0.49)'
+        background: 'linear-gradient(135deg, #ea580c 0%, #dc2626 100%)',
+        transform: 'translateY(-1px)',
+        boxShadow: '0 4px 20px rgba(255, 107, 53, 0.35)'
       }
     },
     secondary: {
@@ -72,9 +73,10 @@ const Button = ({
       fontWeight: theme.typography.fontWeight.semibold
     },
     lg: {
-      padding: `${theme.spacing[4]} ${theme.spacing[8]}`,
-      fontSize: theme.typography.fontSize.lg,
-      fontWeight: theme.typography.fontWeight.semibold
+      padding: `${theme.spacing[4]} ${theme.spacing[6]}`,
+      fontSize: theme.typography.fontSize.base,
+      fontWeight: theme.typography.fontWeight.semibold,
+      minHeight: '48px'
     },
     xl: {
       padding: `${theme.spacing[5]} ${theme.spacing[10]}`,
