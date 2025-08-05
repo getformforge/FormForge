@@ -26,12 +26,14 @@ const Button = ({
       }
     },
     secondary: {
-      background: 'rgba(100, 116, 139, 0.1)',
+      background: '#ffffff',
       color: theme.colors.secondary[700],
-      border: `2px solid rgba(100, 116, 139, 0.2)`,
+      border: `2px solid ${theme.colors.secondary[200]}`,
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
       '&:hover': !disabled && {
-        background: 'rgba(100, 116, 139, 0.2)',
-        color: theme.colors.secondary[800]
+        background: theme.colors.secondary[50],
+        color: theme.colors.secondary[800],
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
       }
     },
     success: {
@@ -45,8 +47,9 @@ const Button = ({
       color: theme.colors.secondary[600],
       border: '2px solid transparent',
       '&:hover': !disabled && {
-        background: 'rgba(100, 116, 139, 0.1)',
-        color: theme.colors.secondary[700]
+        background: '#ffffff',
+        color: theme.colors.secondary[700],
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)'
       }
     },
     danger: {

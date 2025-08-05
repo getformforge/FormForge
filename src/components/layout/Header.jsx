@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, ArrowLeft } from 'lucide-react';
+import { User, Home } from 'lucide-react';
 import Layout from './Layout';
 import Button from '../ui/Button';
 import { theme } from '../../styles/theme';
@@ -7,33 +7,34 @@ import { theme } from '../../styles/theme';
 const Header = ({ 
   title = 'FormForge', 
   subtitle,
-  showBackButton = false,
-  onBack,
+  showHomeButton = false,
+  onHome,
   user,
   onUserClick,
   rightContent
 }) => {
   return (
     <div style={{
-      background: 'rgba(15, 23, 42, 0.8)',
+      background: 'rgba(255, 255, 255, 0.95)',
       backdropFilter: 'blur(20px)',
-      borderBottom: '1px solid rgba(255, 107, 53, 0.2)',
+      borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
       padding: `${theme.spacing[4]} 0`,
       position: 'sticky',
       top: 0,
-      zIndex: 100
+      zIndex: 100,
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
     }}>
       <Layout.Container>
         <Layout.Flex justify="space-between" align="center">
           <Layout.Flex align="center" gap={4}>
-            {showBackButton && (
+            {showHomeButton && (
               <Button
                 variant="ghost"
                 size="sm"
-                leftIcon={<ArrowLeft size={16} />}
-                onClick={onBack}
+                leftIcon={<Home size={16} />}
+                onClick={onHome}
               >
-                Back
+                Home
               </Button>
             )}
             
@@ -54,7 +55,7 @@ const Header = ({
               {subtitle && (
                 <p style={{
                   fontSize: theme.typography.fontSize.sm,
-                  color: 'rgba(255, 255, 255, 0.7)',
+                  color: theme.colors.secondary[600],
                   margin: 0
                 }}>
                   {subtitle}

@@ -5,7 +5,7 @@ const Layout = ({ children, variant = 'default' }) => {
   const variants = {
     default: {
       minHeight: '100vh',
-      background: theme.gradients.hero,
+      background: theme.gradients.background,
       position: 'relative'
     },
     landing: {

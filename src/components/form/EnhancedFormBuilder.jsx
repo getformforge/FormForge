@@ -238,8 +238,8 @@ const EnhancedFormBuilder = ({ onFieldsChange, initialFields = [] }) => {
       {/* Field Types Palette */}
       <Card variant="base" padding="lg">
         <Card.Header>
-          <Card.Title>Field Types</Card.Title>
-          <Card.Subtitle>Drag and drop or click to add fields to your form</Card.Subtitle>
+          <Card.Title style={{ color: theme.colors.secondary[900] }}>Field Types</Card.Title>
+          <Card.Subtitle style={{ color: theme.colors.secondary[600] }}>Drag and drop or click to add fields to your form</Card.Subtitle>
         </Card.Header>
 
         <div style={{
@@ -252,12 +252,12 @@ const EnhancedFormBuilder = ({ onFieldsChange, initialFields = [] }) => {
               key={fieldType.type}
               style={{
                 padding: theme.spacing[4],
-                border: `2px solid rgba(255, 107, 53, 0.2)`,
+                border: `2px solid ${theme.colors.secondary[200]}`,
                 borderRadius: theme.borderRadius.lg,
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
-                background: 'rgba(255, 255, 255, 0.05)',
-                backdropFilter: 'blur(10px)'
+                background: '#ffffff',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)'
               }}
               onClick={() => addField(fieldType)}
               onMouseEnter={(e) => {
@@ -266,9 +266,9 @@ const EnhancedFormBuilder = ({ onFieldsChange, initialFields = [] }) => {
                 e.target.style.boxShadow = `0 8px 20px ${fieldType.color}30`;
               }}
               onMouseLeave={(e) => {
-                e.target.style.borderColor = 'rgba(255, 107, 53, 0.2)';
+                e.target.style.borderColor = theme.colors.secondary[200];
                 e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = 'none';
+                e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.06)';
               }}
             >
               <div style={{
@@ -283,14 +283,14 @@ const EnhancedFormBuilder = ({ onFieldsChange, initialFields = [] }) => {
                 <div style={{
                   fontSize: theme.typography.fontSize.sm,
                   fontWeight: theme.typography.fontWeight.semibold,
-                  color: '#ffffff'
+                  color: theme.colors.secondary[900]
                 }}>
                   {fieldType.label}
                 </div>
               </div>
               <div style={{
                 fontSize: theme.typography.fontSize.xs,
-                color: 'rgba(255, 255, 255, 0.6)',
+                color: theme.colors.secondary[500],
                 lineHeight: theme.typography.lineHeight.tight
               }}>
                 {fieldType.description}
@@ -305,8 +305,8 @@ const EnhancedFormBuilder = ({ onFieldsChange, initialFields = [] }) => {
         <Card.Header>
           <Layout.Flex justify="space-between" align="center">
             <div>
-              <Card.Title>Form Preview</Card.Title>
-              <Card.Subtitle>{fields.length} field{fields.length !== 1 ? 's' : ''} added</Card.Subtitle>
+              <Card.Title style={{ color: theme.colors.secondary[900] }}>Form Preview</Card.Title>
+              <Card.Subtitle style={{ color: theme.colors.secondary[600] }}>{fields.length} field{fields.length !== 1 ? 's' : ''} added</Card.Subtitle>
             </div>
             {fields.length > 0 && (
               <Button
@@ -328,10 +328,10 @@ const EnhancedFormBuilder = ({ onFieldsChange, initialFields = [] }) => {
             <div style={{
               textAlign: 'center',
               padding: theme.spacing[16],
-              color: 'rgba(255, 255, 255, 0.6)'
+              color: theme.colors.secondary[500]
             }}>
-              <FileText size={48} style={{ marginBottom: theme.spacing[4], opacity: 0.5 }} />
-              <div style={{ fontSize: theme.typography.fontSize.lg, marginBottom: theme.spacing[2] }}>
+              <FileText size={48} style={{ marginBottom: theme.spacing[4], opacity: 0.5, color: theme.colors.secondary[400] }} />
+              <div style={{ fontSize: theme.typography.fontSize.lg, marginBottom: theme.spacing[2], color: theme.colors.secondary[600] }}>
                 No fields added yet
               </div>
               <div style={{ fontSize: theme.typography.fontSize.sm }}>

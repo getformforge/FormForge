@@ -143,8 +143,9 @@ export const theme = {
     primary: 'linear-gradient(135deg, #ff6b35 0%, #e63946 100%)',
     secondary: 'linear-gradient(135deg, #64748b 0%, #334155 100%)',
     success: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-    hero: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
-    card: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)'
+    hero: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%)',
+    card: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%)',
+    background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
   },
 
   // Component Styles
@@ -190,19 +191,19 @@ export const theme = {
     // Card styles
     card: {
       base: {
-        background: 'rgba(15, 23, 42, 0.95)',
+        background: '#ffffff',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 107, 53, 0.1)',
+        border: '1px solid rgba(226, 232, 240, 0.8)',
         borderRadius: '1rem',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
         padding: '2rem'
       },
       glass: {
-        background: 'rgba(248, 250, 252, 0.8)',
+        background: 'rgba(255, 255, 255, 0.9)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
+        border: '1px solid rgba(226, 232, 240, 0.5)',
         borderRadius: '1rem',
-        boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)'
+        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.08)'
       }
     },
 

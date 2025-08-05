@@ -295,8 +295,8 @@ const FormBuilderApp = () => {
       <Header
         title="FormForge Builder"
         subtitle="Create professional forms and generate beautiful PDFs"
-        showBackButton={true}
-        onBack={() => window.location.href = '/'}
+        showHomeButton={true}
+        onHome={() => window.location.href = '/'}
         user={currentUser}
         onUserClick={() => setShowUserDashboard(true)}
         rightContent={
@@ -322,7 +322,7 @@ const FormBuilderApp = () => {
                 <h2 style={{
                   fontSize: theme.typography.fontSize['2xl'],
                   fontWeight: theme.typography.fontWeight.bold,
-                  color: '#ffffff',
+                  color: theme.colors.secondary[900],
                   margin: 0,
                   marginBottom: theme.spacing[1]
                 }}>
@@ -330,7 +330,7 @@ const FormBuilderApp = () => {
                 </h2>
                 <p style={{
                   fontSize: theme.typography.fontSize.base,
-                  color: 'rgba(255, 255, 255, 0.7)',
+                  color: theme.colors.secondary[600],
                   margin: 0
                 }}>
                   {currentView === 'builder' ? 'Design your form with advanced field types' : 'Preview and test your form'}
