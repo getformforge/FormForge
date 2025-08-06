@@ -59,6 +59,7 @@ const FormBuilderApp = () => {
     pdfHeader: '',
     pdfSubheader: ''
   });
+  const [formRowsStructure, setFormRowsStructure] = useState([]);
 
 
   // Check for template from landing pages on component mount
@@ -89,8 +90,11 @@ const FormBuilderApp = () => {
     }
   }, []);
 
-  const handleFieldsChange = (newFields) => {
+  const handleFieldsChange = (newFields, rowsStructure) => {
     setFormFields(newFields);
+    if (rowsStructure) {
+      setFormRowsStructure(rowsStructure);
+    }
     // Clear form data for removed fields
     const fieldIds = new Set(newFields.map(f => f.id));
     const cleanedFormData = Object.fromEntries(
@@ -384,17 +388,95 @@ const FormBuilderApp = () => {
   };
 
   const handleSelectTemplate = (templateFields, templateName) => {
-    // Ensure all fields have unique IDs and clear existing data
-    const fieldsWithUniqueIds = templateFields.map((field, index) => ({
-      ...field,
-      id: Date.now() + index // Generate unique IDs
-    }));
+    // Create optimized row structure based on template
+    const rows = [];
+    let currentRow = null;
     
-    setFormFields(fieldsWithUniqueIds);
-    setFormData({}); // Clear all form data
-    setTemplateKey(Date.now()); // Force re-render
-    setCurrentView('builder'); // Switch to builder view to see the change
-    alert(`✅ Template "${templateName}" loaded successfully!`);
+    // Analyze template fields to create optimal layout
+    templateFields.forEach((field, index) => {
+      const fieldWithId = { ...field, id: Date.now() + index };
+      
+      // Determine optimal columns based on field type and position
+      if (!currentRow) {
+        // Start new row
+        const columnsForRow = determineOptimalColumns(templateFields, index);
+        currentRow = {
+          id: Date.now() + Math.random(),
+          columns: columnsForRow,
+          fields: [fieldWithId]
+        };
+      } else {
+        // Check if we should start a new row
+        const shouldStartNewRow = 
+          currentRow.fields.length >= currentRow.columns ||
+          ['heading1', 'heading2', 'paragraph', 'divider'].includes(field.type) ||
+          (currentRow.fields.length > 0 && ['textarea', 'file', 'signature'].includes(field.type));
+        
+        if (shouldStartNewRow) {
+          rows.push(currentRow);
+          const columnsForRow = determineOptimalColumns(templateFields, index);
+          currentRow = {
+            id: Date.now() + Math.random(),
+            columns: columnsForRow,
+            fields: [fieldWithId]
+          };
+        } else {
+          currentRow.fields.push(fieldWithId);
+        }
+      }
+    });
+    
+    // Add last row
+    if (currentRow && currentRow.fields.length > 0) {
+      rows.push(currentRow);
+    }
+    
+    // Update state
+    setFormRowsStructure(rows);
+    const flatFields = [];
+    rows.forEach(row => {
+      row.fields.forEach(field => {
+        flatFields.push({ ...field, columns: row.columns, rowId: row.id });
+      });
+    });
+    setFormFields(flatFields);
+    setFormData({});
+    setTemplateKey(Date.now());
+    setCurrentView('builder');
+    alert(`✅ Template "${templateName}" loaded with optimized layout!`);
+  };
+  
+  // Helper function to determine optimal columns
+  const determineOptimalColumns = (fields, startIndex) => {
+    const field = fields[startIndex];
+    
+    // Layout fields always take full width
+    if (['heading1', 'heading2', 'paragraph', 'divider'].includes(field.type)) {
+      return 1;
+    }
+    
+    // Large fields take full width
+    if (['textarea', 'file', 'signature'].includes(field.type)) {
+      return 1;
+    }
+    
+    // Check next few fields to determine if they can be grouped
+    let consecutiveSmallFields = 0;
+    for (let i = startIndex; i < Math.min(startIndex + 3, fields.length); i++) {
+      const f = fields[i];
+      if (!['textarea', 'file', 'signature', 'heading1', 'heading2', 'paragraph', 'divider'].includes(f.type)) {
+        consecutiveSmallFields++;
+      } else {
+        break;
+      }
+    }
+    
+    // If we have 3+ small fields, use 3 columns
+    if (consecutiveSmallFields >= 3) return 3;
+    // If we have 2 small fields, use 2 columns
+    if (consecutiveSmallFields >= 2) return 2;
+    // Otherwise single column
+    return 1;
   };
 
   const handlePublishForm = async (formInfo) => {
@@ -531,25 +613,15 @@ const FormBuilderApp = () => {
           </div>
 
           {currentView === 'builder' && (
-            <div>
-              <div style={{ marginBottom: theme.spacing[4], display: 'flex', justifyContent: 'flex-end' }}>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  leftIcon={<Settings size={16} />}
-                  onClick={() => setShowTemplates(true)}
-                >
-                  Templates
-                </Button>
-              </div>
-              <RowBasedFormBuilder
-                key={templateKey}
-                onFieldsChange={handleFieldsChange}
-                initialFields={formFields}
-                formSettings={formSettings}
-                onSettingsChange={setFormSettings}
-              />
-            </div>
+            <RowBasedFormBuilder
+              key={templateKey}
+              onFieldsChange={handleFieldsChange}
+              initialFields={formFields}
+              initialRows={formRowsStructure}
+              formSettings={formSettings}
+              onSettingsChange={setFormSettings}
+              onShowTemplates={() => setShowTemplates(true)}
+            />
           )}
 
           {currentView === 'preview' && (
@@ -595,23 +667,16 @@ const FormBuilderApp = () => {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing[4] }}>
                         {getFieldRows().map((row, rowIndex) => (
                           <div key={rowIndex} style={{ 
-                            display: 'flex', 
-                            gap: theme.spacing[4],
-                            flexWrap: 'wrap'
+                            display: 'grid',
+                            gridTemplateColumns: row.columns === 1 ? '1fr' : row.columns === 2 ? '1fr 1fr' : '1fr 1fr 1fr',
+                            gap: theme.spacing[4]
                           }}>
-                            {row.map(field => {
-                              const widthMap = {
-                                'full': '100%',
-                                'half': 'calc(50% - 8px)',
-                                'third': 'calc(33.333% - 10px)',
-                                'two-thirds': 'calc(66.666% - 8px)'
-                              };
-                              const fieldWidth = widthMap[field.width || 'full'];
+                            {row.fields?.map(field => {
                               
                               // Handle layout fields
                               if (field.type === 'heading1') {
                                 return (
-                                  <div key={field.id} style={{ width: '100%' }}>
+                                  <div key={field.id} style={{ gridColumn: '1 / -1' }}>
                                     <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#111827', margin: '0 0 16px 0' }}>
                                       {field.content || 'Main Heading'}
                                     </h1>
@@ -620,7 +685,7 @@ const FormBuilderApp = () => {
                               }
                               if (field.type === 'heading2') {
                                 return (
-                                  <div key={field.id} style={{ width: '100%' }}>
+                                  <div key={field.id} style={{ gridColumn: '1 / -1' }}>
                                     <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#374151', margin: '0 0 12px 0' }}>
                                       {field.content || 'Sub Heading'}
                                     </h2>
@@ -629,7 +694,7 @@ const FormBuilderApp = () => {
                               }
                               if (field.type === 'paragraph') {
                                 return (
-                                  <div key={field.id} style={{ width: '100%' }}>
+                                  <div key={field.id} style={{ gridColumn: '1 / -1' }}>
                                     <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 12px 0', lineHeight: '1.6' }}>
                                       {field.content || 'Paragraph text...'}
                                     </p>
@@ -638,7 +703,7 @@ const FormBuilderApp = () => {
                               }
                               if (field.type === 'divider') {
                                 return (
-                                  <div key={field.id} style={{ width: '100%' }}>
+                                  <div key={field.id} style={{ gridColumn: '1 / -1' }}>
                                     <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', margin: '20px 0' }} />
                                   </div>
                                 );
@@ -646,7 +711,7 @@ const FormBuilderApp = () => {
                               
                               // Regular form fields
                               return (
-                                <div key={field.id} style={{ width: fieldWidth }}>
+                                <div key={field.id}>
                                   <label style={{
                                     display: 'block',
                                     fontSize: theme.typography.fontSize.sm,

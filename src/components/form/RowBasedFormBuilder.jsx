@@ -126,12 +126,7 @@ const FormRow = ({ row, rowIndex, onUpdateRow, onDeleteRow, onUpdateField, onDel
   };
 
   const getFieldWidth = () => {
-    switch(columns) {
-      case 1: return '100%';
-      case 2: return 'calc(50% - 8px)';
-      case 3: return 'calc(33.333% - 10px)';
-      default: return '100%';
-    }
+    return '100%'; // Since we're using grid, each field takes full width of its grid cell
   };
 
   return (
@@ -235,9 +230,9 @@ const FormRow = ({ row, rowIndex, onUpdateRow, onDeleteRow, onUpdateField, onDel
       <div 
         ref={setNodeRef}
         style={{
-          display: 'flex',
+          display: 'grid',
+          gridTemplateColumns: columns === 1 ? '1fr' : columns === 2 ? '1fr 1fr' : '1fr 1fr 1fr',
           gap: '16px',
-          flexWrap: 'wrap',
           minHeight: '60px',
           padding: '8px',
           background: isOver ? '#eff6ff' : '#ffffff',
@@ -429,8 +424,31 @@ const FieldCard = ({ field, width, onUpdate, onDelete }) => {
 };
 
 // Main Form Builder Component
-const RowBasedFormBuilder = ({ onFieldsChange, initialFields = [], formSettings, onSettingsChange }) => {
-  const [rows, setRows] = useState([]);
+const RowBasedFormBuilder = ({ onFieldsChange, initialFields = [], formSettings, onSettingsChange, onShowTemplates }) => {
+  const [rows, setRows] = useState(() => {
+    // Initialize rows from initialFields if they exist
+    if (initialFields.length > 0) {
+      const rowsMap = new Map();
+      let currentRowId = Date.now();
+      let currentRow = { id: currentRowId, columns: 1, fields: [] };
+      
+      initialFields.forEach(field => {
+        currentRow.fields.push(field);
+        if (currentRow.fields.length >= (field.columns || 1)) {
+          rowsMap.set(currentRowId, currentRow);
+          currentRowId = Date.now() + Math.random();
+          currentRow = { id: currentRowId, columns: 1, fields: [] };
+        }
+      });
+      
+      if (currentRow.fields.length > 0) {
+        rowsMap.set(currentRowId, currentRow);
+      }
+      
+      return Array.from(rowsMap.values());
+    }
+    return [];
+  });
   const [activeTab, setActiveTab] = useState('input');
   const [pdfHeader, setPdfHeader] = useState(formSettings?.pdfHeader || '');
   const [pdfSubheader, setPdfSubheader] = useState(formSettings?.pdfSubheader || '');
@@ -560,15 +578,20 @@ const RowBasedFormBuilder = ({ onFieldsChange, initialFields = [], formSettings,
     updateParentFields(updatedRows);
   };
 
-  // Update parent component with flat field list
+  // Update parent component with flat field list and row information
   const updateParentFields = (updatedRows) => {
     const flatFields = [];
+    const rowsStructure = [];
     updatedRows.forEach(row => {
+      const rowData = { ...row, fields: [] };
       row.fields.forEach(field => {
-        flatFields.push({ ...field, columns: row.columns });
+        const fieldWithMeta = { ...field, columns: row.columns, rowId: row.id };
+        flatFields.push(fieldWithMeta);
+        rowData.fields.push(fieldWithMeta);
       });
+      rowsStructure.push(rowData);
     });
-    onFieldsChange(flatFields);
+    onFieldsChange(flatFields, rowsStructure); // Pass both flat fields and rows structure
   };
 
   // Save PDF settings
