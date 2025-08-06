@@ -3,7 +3,7 @@ import { Share2, Copy, CheckCircle, X, Globe, Users } from 'lucide-react';
 import Button from './ui/Button';
 import { theme } from '../styles/theme';
 
-const ShareFormModal = ({ isOpen, onClose, onPublish, isPublishing }) => {
+const ShareFormModal = ({ isOpen, onClose, onPublish, isPublishing, currentTheme = 'modern' }) => {
   const [formTitle, setFormTitle] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [shareUrl, setShareUrl] = useState(null);
@@ -17,7 +17,8 @@ const ShareFormModal = ({ isOpen, onClose, onPublish, isPublishing }) => {
 
     const result = await onPublish({
       title: formTitle,
-      description: formDescription
+      description: formDescription,
+      theme: currentTheme // Include theme when publishing
     });
 
     if (result.success) {

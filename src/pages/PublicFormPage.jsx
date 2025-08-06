@@ -16,6 +16,7 @@ import {
   AdvancedNumberInput
 } from '../components/form/AdvancedFieldTypes';
 import { theme } from '../styles/theme';
+import { getThemeById, generateThemeCSS } from '../styles/formThemes';
 
 const PublicFormPage = () => {
   const { formId } = useParams();
@@ -25,6 +26,7 @@ const PublicFormPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(null);
+  const [formTheme, setFormTheme] = useState(null);
 
   useEffect(() => {
     const loadForm = async () => {
@@ -32,6 +34,10 @@ const PublicFormPage = () => {
         const result = await getPublishedForm(formId);
         if (result.success) {
           setForm(result.form);
+          // Set the theme from the form data
+          const selectedTheme = result.form.theme || result.form.settings?.theme || 'modern';
+          setFormTheme(getThemeById(selectedTheme));
+          
           // Initialize form data with empty values
           const initialData = {};
           result.form.fields.forEach(field => {
@@ -50,6 +56,30 @@ const PublicFormPage = () => {
 
     loadForm();
   }, [formId]);
+
+  // Inject theme CSS into the page
+  useEffect(() => {
+    if (formTheme) {
+      const styleId = 'form-theme-styles';
+      let styleElement = document.getElementById(styleId);
+      
+      if (!styleElement) {
+        styleElement = document.createElement('style');
+        styleElement.id = styleId;
+        document.head.appendChild(styleElement);
+      }
+      
+      styleElement.textContent = generateThemeCSS(formTheme.id);
+      
+      return () => {
+        // Cleanup on unmount
+        const element = document.getElementById(styleId);
+        if (element) {
+          element.remove();
+        }
+      };
+    }
+  }, [formTheme]);
 
   const handleInputChange = (fieldId, value) => {
     setFormData(prev => ({ ...prev, [fieldId]: value }));
@@ -97,6 +127,7 @@ const PublicFormPage = () => {
   const renderFormField = (field) => {
     const value = formData[field.id];
     const error = field.required && !value;
+    const themeStyles = formTheme?.styles || {};
 
     const commonProps = {
       field,
@@ -126,7 +157,7 @@ const PublicFormPage = () => {
           <select
             value={value || ''}
             onChange={(e) => handleInputChange(field.id, e.target.value)}
-            style={{
+            style={themeStyles.select || {
               width: '100%',
               padding: theme.spacing[3],
               border: error ? `2px solid ${theme.colors.error[500]}` : `2px solid ${theme.colors.secondary[200]}`,
@@ -134,6 +165,7 @@ const PublicFormPage = () => {
               fontSize: theme.typography.fontSize.base,
               outline: 'none'
             }}
+            className="form-select"
           >
             <option value="">Select an option</option>
             {field.options?.map((option, index) => (
@@ -165,7 +197,8 @@ const PublicFormPage = () => {
               type="checkbox"
               checked={value || false}
               onChange={(e) => handleInputChange(field.id, e.target.checked)}
-              style={{ width: '20px', height: '20px' }}
+              style={themeStyles.checkbox || { width: '20px', height: '20px' }}
+              className="form-checkbox"
             />
             <span style={{ color: theme.colors.secondary[600] }}>
               {field.placeholder || 'Check if applicable'}
@@ -180,7 +213,7 @@ const PublicFormPage = () => {
             onChange={(e) => handleInputChange(field.id, e.target.value)}
             placeholder={field.placeholder}
             required={field.required}
-            style={{
+            style={themeStyles.input || {
               width: '100%',
               padding: theme.spacing[3],
               border: error ? `2px solid ${theme.colors.error[500]}` : `2px solid ${theme.colors.secondary[200]}`,
@@ -189,14 +222,7 @@ const PublicFormPage = () => {
               outline: 'none',
               transition: 'all 0.2s ease'
             }}
-            onFocus={(e) => {
-              e.target.style.borderColor = theme.colors.primary[500];
-              e.target.style.boxShadow = `0 0 0 3px ${theme.colors.primary[500]}20`;
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = error ? theme.colors.error[500] : theme.colors.secondary[200];
-              e.target.style.boxShadow = 'none';
-            }}
+            className="form-input"
           />
         );
     }
@@ -296,72 +322,83 @@ const PublicFormPage = () => {
     );
   }
 
+  const themeStyles = formTheme?.styles || {};
+
   return (
     <Layout>
-      <Layout.Section padding="lg">
+      <Layout.Section padding="lg" style={{ 
+        minHeight: '100vh',
+        background: formTheme?.id === 'dark' ? '#0f0f1a' : 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
+      }}>
         <Layout.Container size="sm">
-          <Card variant="base" padding="lg">
-            <Card.Header>
-              <Card.Title>{form.title}</Card.Title>
+          <div 
+            className={`form-theme-${formTheme?.id || 'modern'}`}
+            style={{
+              ...themeStyles.container,
+              margin: '0 auto',
+              maxWidth: '600px'
+            }}
+          >
+            <div>
+              <h1 className="form-title" style={themeStyles.title}>
+                {form.title}
+              </h1>
               {form.description && (
-                <Card.Subtitle>{form.description}</Card.Subtitle>
+                <p className="form-description" style={themeStyles.description}>
+                  {form.description}
+                </p>
               )}
-            </Card.Header>
+            </div>
 
-            <Card.Content>
-              <form onSubmit={handleSubmit}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing[6] }}>
-                  {form.fields.map(field => (
-                    <div key={field.id}>
-                      <label style={{
-                        display: 'block',
-                        fontSize: theme.typography.fontSize.sm,
-                        fontWeight: theme.typography.fontWeight.medium,
-                        color: theme.colors.secondary[700],
-                        marginBottom: theme.spacing[2]
-                      }}>
-                        {field.label}
-                        {field.required && (
-                          <span style={{ color: theme.colors.error[500], marginLeft: theme.spacing[1] }}>*</span>
-                        )}
-                      </label>
-                      {renderFormField(field)}
-                    </div>
-                  ))}
-                </div>
+            <form onSubmit={handleSubmit}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {form.fields.map(field => (
+                  <div key={field.id} className="field-wrapper" style={themeStyles.fieldWrapper}>
+                    <label style={themeStyles.label}>
+                      {field.label}
+                      {field.required && (
+                        <span style={{ color: themeStyles.error?.color || '#ef4444', marginLeft: '4px' }}>*</span>
+                      )}
+                    </label>
+                    {renderFormField(field)}
+                  </div>
+                ))}
+              </div>
 
-                <div style={{ 
-                  marginTop: theme.spacing[8], 
-                  display: 'flex', 
-                  justifyContent: 'center' 
-                }}>
-                  <Button
-                    type="submit"
-                    size="lg"
-                    leftIcon={<Send size={20} />}
-                    disabled={submitting}
-                    loading={submitting}
-                  >
-                    {submitting ? 'Submitting...' : 'Submit Form'}
-                  </Button>
-                </div>
-              </form>
-            </Card.Content>
+              <div style={{ 
+                marginTop: '32px', 
+                display: 'flex', 
+                justifyContent: 'center' 
+              }}>
+                <button
+                  type="submit"
+                  className="submit-button"
+                  style={{
+                    ...themeStyles.submitButton,
+                    cursor: submitting ? 'not-allowed' : 'pointer',
+                    opacity: submitting ? 0.7 : 1
+                  }}
+                  disabled={submitting}
+                >
+                  {submitting ? 'Submitting...' : 'Submit Form'}
+                </button>
+              </div>
+            </form>
 
             <div style={{ 
-              marginTop: theme.spacing[6], 
+              marginTop: '32px', 
               textAlign: 'center',
-              borderTop: `1px solid ${theme.colors.secondary[200]}`,
-              paddingTop: theme.spacing[4]
+              borderTop: formTheme?.id === 'minimal' ? '1px solid #000' : '1px solid rgba(0, 0, 0, 0.1)',
+              paddingTop: '16px'
             }}>
               <p style={{
-                fontSize: theme.typography.fontSize.xs,
-                color: theme.colors.secondary[400]
+                fontSize: '12px',
+                color: formTheme?.id === 'dark' ? '#6b6b80' : '#9ca3af'
               }}>
                 Powered by <strong>FormForge</strong>
               </p>
             </div>
-          </Card>
+          </div>
         </Layout.Container>
       </Layout.Section>
     </Layout>

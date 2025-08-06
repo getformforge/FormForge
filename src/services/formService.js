@@ -216,13 +216,15 @@ export const publishForm = async (userId, formData) => {
       fields: formData.fields || [],
       ownerId: userId,
       isPublished: true,
+      theme: formData.theme || 'modern', // Add theme support
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       submissionCount: 0,
       settings: {
         allowMultipleSubmissions: true,
         showProgressBar: true,
-        customTheme: formData.settings?.customTheme || 'default'
+        customTheme: formData.settings?.customTheme || 'default',
+        theme: formData.theme || 'modern' // Store theme in settings too
       }
     };
 

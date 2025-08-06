@@ -8,6 +8,7 @@ import PricingModal from './components/PricingModal';
 import Templates from './components/Templates';
 import ShareFormModal from './components/ShareFormModal';
 import SubmissionsDashboard from './components/SubmissionsDashboard';
+import ThemeSelector from './components/ThemeSelector';
 import Layout from './components/layout/Layout';
 import Header from './components/layout/Header';
 import Button from './components/ui/Button';
@@ -54,6 +55,7 @@ const FormBuilderApp = () => {
   const [isPublishing, setIsPublishing] = useState(false);
   const [statsRefreshTrigger, setStatsRefreshTrigger] = useState(0);
   const [templateKey, setTemplateKey] = useState(Date.now());
+  const [currentTheme, setCurrentTheme] = useState('modern'); // Add theme state
 
   // Check for template from landing pages on component mount
   useEffect(() => {
@@ -428,6 +430,11 @@ const FormBuilderApp = () => {
                 >
                   Preview & Test
                 </Button>
+                <ThemeSelector 
+                  currentTheme={currentTheme}
+                  onThemeChange={setCurrentTheme}
+                  isPreview={currentView === 'preview'}
+                />
               </Layout.Flex>
 
               <div style={{ textAlign: 'center' }}>
@@ -607,6 +614,7 @@ const FormBuilderApp = () => {
           onClose={() => setShowShareModal(false)}
           onPublish={handlePublishForm}
           isPublishing={isPublishing}
+          currentTheme={currentTheme}
         />
       )}
 
