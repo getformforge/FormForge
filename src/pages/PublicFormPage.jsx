@@ -16,7 +16,6 @@ import {
   AdvancedNumberInput
 } from '../components/form/AdvancedFieldTypes';
 import { theme } from '../styles/theme';
-import { getThemeById, generateThemeCSS } from '../styles/formThemes';
 
 const PublicFormPage = () => {
   const { formId } = useParams();
@@ -26,7 +25,6 @@ const PublicFormPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(null);
-  const [formTheme, setFormTheme] = useState(null);
 
   useEffect(() => {
     const loadForm = async () => {
@@ -34,9 +32,6 @@ const PublicFormPage = () => {
         const result = await getPublishedForm(formId);
         if (result.success) {
           setForm(result.form);
-          // Set the theme from the form data
-          const selectedTheme = result.form.theme || result.form.settings?.theme || 'modern';
-          setFormTheme(getThemeById(selectedTheme));
           
           // Initialize form data with empty values
           const initialData = {};
@@ -57,29 +52,6 @@ const PublicFormPage = () => {
     loadForm();
   }, [formId]);
 
-  // Inject theme CSS into the page
-  useEffect(() => {
-    if (formTheme) {
-      const styleId = 'form-theme-styles';
-      let styleElement = document.getElementById(styleId);
-      
-      if (!styleElement) {
-        styleElement = document.createElement('style');
-        styleElement.id = styleId;
-        document.head.appendChild(styleElement);
-      }
-      
-      styleElement.textContent = generateThemeCSS(formTheme.id);
-      
-      return () => {
-        // Cleanup on unmount
-        const element = document.getElementById(styleId);
-        if (element) {
-          element.remove();
-        }
-      };
-    }
-  }, [formTheme]);
 
   const handleInputChange = (fieldId, value) => {
     setFormData(prev => ({ ...prev, [fieldId]: value }));
@@ -127,7 +99,6 @@ const PublicFormPage = () => {
   const renderFormField = (field) => {
     const value = formData[field.id];
     const error = field.required && !value;
-    const themeStyles = formTheme?.styles || {};
 
     const commonProps = {
       field,
@@ -157,7 +128,7 @@ const PublicFormPage = () => {
           <select
             value={value || ''}
             onChange={(e) => handleInputChange(field.id, e.target.value)}
-            style={themeStyles.select || {
+            style={{
               width: '100%',
               padding: theme.spacing[3],
               border: error ? `2px solid ${theme.colors.error[500]}` : `2px solid ${theme.colors.secondary[200]}`,
@@ -197,7 +168,7 @@ const PublicFormPage = () => {
               type="checkbox"
               checked={value || false}
               onChange={(e) => handleInputChange(field.id, e.target.checked)}
-              style={themeStyles.checkbox || { width: '20px', height: '20px' }}
+              style={{ width: '20px', height: '20px' }}
               className="form-checkbox"
             />
             <span style={{ color: theme.colors.secondary[600] }}>
@@ -213,7 +184,7 @@ const PublicFormPage = () => {
             onChange={(e) => handleInputChange(field.id, e.target.value)}
             placeholder={field.placeholder}
             required={field.required}
-            style={themeStyles.input || {
+            style={{
               width: '100%',
               padding: theme.spacing[3],
               border: error ? `2px solid ${theme.colors.error[500]}` : `2px solid ${theme.colors.secondary[200]}`,

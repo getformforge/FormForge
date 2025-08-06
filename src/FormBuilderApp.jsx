@@ -8,12 +8,11 @@ import PricingModal from './components/PricingModal';
 import Templates from './components/Templates';
 import ShareFormModal from './components/ShareFormModal';
 import SubmissionsDashboard from './components/SubmissionsDashboard';
-import ThemeSelector from './components/ThemeSelector';
 import Layout from './components/layout/Layout';
 import Header from './components/layout/Header';
 import Button from './components/ui/Button';
 import Card from './components/ui/Card';
-import EnhancedFormBuilderDnD from './components/form/EnhancedFormBuilderDnD';
+import ModernFormBuilder from './components/form/ModernFormBuilder';
 import { 
   AdvancedTextArea,
   AdvancedDatePicker,
@@ -55,46 +54,7 @@ const FormBuilderApp = () => {
   const [isPublishing, setIsPublishing] = useState(false);
   const [statsRefreshTrigger, setStatsRefreshTrigger] = useState(0);
   const [templateKey, setTemplateKey] = useState(Date.now());
-  const [currentTheme, setCurrentTheme] = useState('modern'); // Add theme state
 
-  // Get theme-specific styles for form preview
-  const getThemeStyles = (themeName) => {
-    const themeStyles = {
-      modern: {
-        padding: '24px',
-        background: '#ffffff',
-        borderRadius: '8px',
-        border: '1px solid #e5e7eb'
-      },
-      glass: {
-        padding: '24px',
-        background: 'rgba(255, 255, 255, 0.9)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: '16px',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
-        boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.1)'
-      },
-      minimal: {
-        padding: '24px',
-        background: '#ffffff',
-        border: '2px solid #000000',
-        borderRadius: '0'
-      },
-      corporate: {
-        padding: '24px',
-        background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)',
-        borderRadius: '4px',
-        border: '1px solid #e0e0e0'
-      },
-      dark: {
-        padding: '24px',
-        background: 'linear-gradient(135deg, #1e1e2e 0%, #151521 100%)',
-        borderRadius: '12px',
-        border: '1px solid rgba(255, 255, 255, 0.1)'
-      }
-    };
-    return themeStyles[themeName] || themeStyles.modern;
-  };
 
   // Check for template from landing pages on component mount
   useEffect(() => {
@@ -269,60 +229,81 @@ const FormBuilderApp = () => {
       const pdf = new jsPDF();
       const pageWidth = pdf.internal.pageSize.getWidth();
       const margin = 20;
-      let currentY = 40;
-
-      // Clean, professional header
-      pdf.setTextColor(51, 51, 51);
-      pdf.setFontSize(18);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Form Submission', pageWidth / 2, currentY, { align: 'center' });
-      currentY += 12;
+      let currentY = 30;
       
-      // Date line
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(102, 102, 102);
-      pdf.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, currentY, { align: 'center' });
-      currentY += 15;
-      
-      // Separator line
-      pdf.setDrawColor(200, 200, 200);
-      pdf.line(margin, currentY, pageWidth - margin, currentY);
-      currentY += 20;
-      
-      // Form fields
+      // Process form fields
       formFields.forEach((field) => {
         if (currentY > 250) {
           pdf.addPage();
           currentY = 30;
         }
         
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(`${field.label}:`, margin, currentY);
-        
-        pdf.setFont('helvetica', 'normal');
-        let value = formData[field.id] || '(Not provided)';
-        
-        if (field.type === 'checkbox') {
-          value = value ? '✓ Yes' : '✗ No';
-        } else if (field.type === 'rating') {
-          value = value ? `${'★'.repeat(value)}${'☆'.repeat(5-value)} (${value}/5)` : '(Not rated)';
-        } else if (field.type === 'signature') {
-          value = value ? '✍ Signed' : '(No signature)';
+        // Handle layout fields (headings, paragraphs, dividers)
+        if (field.type === 'heading1') {
+          pdf.setFontSize(20);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(51, 51, 51);
+          const lines = pdf.splitTextToSize(field.content || 'Heading', pageWidth - (margin * 2));
+          lines.forEach(line => {
+            pdf.text(line, margin, currentY);
+            currentY += 10;
+          });
+          currentY += 10;
+        } else if (field.type === 'heading2') {
+          pdf.setFontSize(16);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(51, 51, 51);
+          const lines = pdf.splitTextToSize(field.content || 'Subheading', pageWidth - (margin * 2));
+          lines.forEach(line => {
+            pdf.text(line, margin, currentY);
+            currentY += 8;
+          });
+          currentY += 8;
+        } else if (field.type === 'paragraph') {
+          pdf.setFontSize(11);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(102, 102, 102);
+          const lines = pdf.splitTextToSize(field.content || '', pageWidth - (margin * 2));
+          lines.forEach(line => {
+            pdf.text(line, margin, currentY);
+            currentY += 6;
+          });
+          currentY += 6;
+        } else if (field.type === 'divider') {
+          pdf.setDrawColor(200, 200, 200);
+          pdf.line(margin, currentY, pageWidth - margin, currentY);
+          currentY += 10;
+        } else if (field.label) {
+          // Regular form fields
+          pdf.setFontSize(12);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(51, 51, 51);
+          pdf.text(`${field.label}:`, margin, currentY);
+          
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(102, 102, 102);
+          let value = formData[field.id] || '(Not provided)';
+          
+          if (field.type === 'checkbox') {
+            value = value ? '✓ Yes' : '✗ No';
+          } else if (field.type === 'rating') {
+            value = value ? `${'★'.repeat(value)}${'☆'.repeat(5-value)} (${value}/5)` : '(Not rated)';
+          } else if (field.type === 'signature') {
+            value = value ? '✍ Signed' : '(No signature)';
+          }
+          
+          const valueText = String(value).substring(0, 60);
+          pdf.text(valueText, margin, currentY + 12);
+          
+          currentY += 25;
         }
-        
-        const valueText = String(value).substring(0, 60);
-        pdf.text(valueText, margin, currentY + 12);
-        
-        currentY += 25;
       });
       
-      // Footer
-      const footerY = pdf.internal.pageSize.getHeight() - 20;
-      pdf.setFontSize(10);
-      pdf.setTextColor(128, 128, 128);
-      pdf.text('Generated by FormForge • Professional Forms Platform', pageWidth / 2, footerY, { align: 'center' });
+      // Minimal footer with just date
+      const footerY = pdf.internal.pageSize.getHeight() - 15;
+      pdf.setFontSize(8);
+      pdf.setTextColor(180, 180, 180);
+      pdf.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, footerY, { align: 'center' });
       
       const fileName = `form-${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
@@ -429,8 +410,8 @@ const FormBuilderApp = () => {
         }
       />
 
-      <Layout.Section padding="lg">
-        <Layout.Container>
+      <Layout.Section padding="sm">
+        <div style={{ width: '100%', maxWidth: '100%', padding: '0 20px' }}>
           <PlanLimits onUpgrade={() => setShowPricingModal(true)} refreshTrigger={statsRefreshTrigger} />
 
           {/* Form Builder with integrated preview toggle */}
@@ -479,13 +460,6 @@ const FormBuilderApp = () => {
               </div>
               
               <Layout.Flex gap={2} align="center">
-                {currentView === 'preview' && (
-                  <ThemeSelector 
-                    currentTheme={currentTheme}
-                    onThemeChange={setCurrentTheme}
-                    isPreview={true}
-                  />
-                )}
                 <Button
                   variant="secondary"
                   size="md"
@@ -510,7 +484,7 @@ const FormBuilderApp = () => {
           </div>
 
           {currentView === 'builder' && (
-            <EnhancedFormBuilderDnD
+            <ModernFormBuilder
               key={templateKey}
               onFieldsChange={handleFieldsChange}
               initialFields={formFields}
@@ -532,7 +506,7 @@ const FormBuilderApp = () => {
                   color: theme.colors.secondary[600],
                   margin: 0
                 }}>
-                  💡 <strong>Tip:</strong> The theme you select here will be applied when you share this form with others
+                  💡 <strong>Tip:</strong> Fill out the form below to test it before sharing
                 </p>
               </div>
               
@@ -541,7 +515,7 @@ const FormBuilderApp = () => {
                   <Card.Header>
                     <Card.Title style={{ color: theme.colors.secondary[900] }}>Form Preview</Card.Title>
                     <Card.Subtitle style={{ color: theme.colors.secondary[600] }}>
-                      This shows how your shared form will look with the selected theme
+                      This shows how your shared form will look
                     </Card.Subtitle>
                   </Card.Header>
 
@@ -551,7 +525,12 @@ const FormBuilderApp = () => {
                       No fields added yet. Go to Builder to add fields.
                     </div>
                   ) : (
-                    <div className={`form-theme-preview theme-${currentTheme}`} style={getThemeStyles(currentTheme)}>
+                    <div style={{
+                      padding: '24px',
+                      background: '#ffffff',
+                      borderRadius: '8px',
+                      border: '1px solid #e5e7eb'
+                    }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing[6] }}>
                         {formFields.map(field => (
                           <div key={field.id}>
@@ -559,7 +538,7 @@ const FormBuilderApp = () => {
                               display: 'block',
                               fontSize: theme.typography.fontSize.sm,
                               fontWeight: theme.typography.fontWeight.medium,
-                              color: currentTheme === 'dark' ? '#e0e0f0' : theme.colors.secondary[700],
+                              color: theme.colors.secondary[700],
                               marginBottom: theme.spacing[2]
                             }}>
                               {field.label}
@@ -644,7 +623,7 @@ const FormBuilderApp = () => {
               </Layout.Grid>
             </>
           )}
-        </Layout.Container>
+        </div>
       </Layout.Section>
 
       {/* Modals */}
@@ -672,7 +651,6 @@ const FormBuilderApp = () => {
           onClose={() => setShowShareModal(false)}
           onPublish={handlePublishForm}
           isPublishing={isPublishing}
-          currentTheme={currentTheme}
         />
       )}
 
