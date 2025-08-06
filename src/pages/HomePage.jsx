@@ -353,14 +353,18 @@ const HomePage = ({ onNavigate }) => {
                 <p style={{
                   color: theme.colors.secondary[600],
                   lineHeight: theme.typography.lineHeight.relaxed,
-                  marginBottom: theme.spacing[6]
+                  marginBottom: theme.spacing[4]
                 }}>
                   {template.description}
                 </p>
                 
-                <Button variant="ghost" rightIcon={<ArrowRight size={16} />}>
-                  Get Started
-                </Button>
+                <div style={{
+                  fontSize: theme.typography.fontSize.sm,
+                  color: theme.colors.secondary[500],
+                  fontStyle: 'italic'
+                }}>
+                  Click "Templates" above to use this template
+                </div>
               </Card>
             ))}
           </Layout.Grid>

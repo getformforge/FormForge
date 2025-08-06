@@ -1,64 +1,56 @@
 import React, { useState } from 'react';
-import { Palette, Check } from 'lucide-react';
-import { getThemeOptions } from '../styles/formThemes';
-import Button from './ui/Button';
+import { Palette } from 'lucide-react';
+import { theme } from '../styles/theme';
 
 const ThemeSelector = ({ currentTheme, onThemeChange, isPreview = false }) => {
   const [showThemePanel, setShowThemePanel] = useState(false);
-  const themes = getThemeOptions();
+  
+  const themes = [
+    { value: 'modern', label: 'Modern', color: '#3B82F6' },
+    { value: 'glass', label: 'Glass', color: '#8B5CF6' },
+    { value: 'minimal', label: 'Minimal', color: '#000000' },
+    { value: 'corporate', label: 'Corporate', color: '#1A237E' },
+    { value: 'dark', label: 'Dark', color: '#7A73FF' }
+  ];
 
   const handleThemeSelect = (themeId) => {
     onThemeChange(themeId);
     setShowThemePanel(false);
   };
 
-  const themePreviewStyles = {
-    modern: {
-      background: 'linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%)',
-      border: '2px solid #e5e7eb',
-      color: '#111827'
-    },
-    glass: {
-      background: 'linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.9) 100%)',
-      border: '2px solid rgba(139, 92, 246, 0.3)',
-      color: '#1e293b'
-    },
-    minimal: {
-      background: '#ffffff',
-      border: '2px solid #000000',
-      color: '#000000'
-    },
-    corporate: {
-      background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)',
-      border: '2px solid #1a237e',
-      color: '#1a237e'
-    },
-    dark: {
-      background: 'linear-gradient(135deg, #1e1e2e 0%, #151521 100%)',
-      border: '2px solid rgba(122, 115, 255, 0.5)',
-      color: '#ffffff'
-    }
-  };
+  const currentThemeData = themes.find(t => t.value === currentTheme) || themes[0];
 
   return (
     <div style={{ position: 'relative' }}>
-      <Button
-        variant="secondary"
-        size="sm"
+      <button
         onClick={() => setShowThemePanel(!showThemePanel)}
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
-          padding: '8px 16px',
+          gap: '6px',
+          padding: '6px 12px',
+          background: 'rgba(100, 116, 139, 0.1)',
+          border: '2px solid rgba(100, 116, 139, 0.2)',
           borderRadius: '8px',
-          fontSize: '14px',
-          fontWeight: '500'
+          fontSize: '13px',
+          fontWeight: '500',
+          color: theme.colors.secondary[700],
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          minWidth: '110px'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'rgba(100, 116, 139, 0.15)';
+          e.currentTarget.style.borderColor = 'rgba(100, 116, 139, 0.3)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'rgba(100, 116, 139, 0.1)';
+          e.currentTarget.style.borderColor = 'rgba(100, 116, 139, 0.2)';
         }}
       >
-        <Palette size={18} />
-        Theme: {themes.find(t => t.value === currentTheme)?.label || 'Modern'}
-      </Button>
+        <Palette size={14} />
+        <span>Theme: {currentThemeData.label}</span>
+      </button>
 
       {showThemePanel && (
         <>
@@ -70,7 +62,7 @@ const ThemeSelector = ({ currentTheme, onThemeChange, isPreview = false }) => {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              backgroundColor: 'rgba(0, 0, 0, 0.1)',
               zIndex: 999
             }}
             onClick={() => setShowThemePanel(false)}
@@ -80,98 +72,55 @@ const ThemeSelector = ({ currentTheme, onThemeChange, isPreview = false }) => {
           <div
             style={{
               position: 'absolute',
-              top: '45px',
-              left: isPreview ? 'auto' : '0',
-              right: isPreview ? '0' : 'auto',
+              top: '36px',
+              right: '0',
               backgroundColor: '#ffffff',
-              borderRadius: '12px',
-              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
-              padding: '20px',
-              width: '320px',
-              zIndex: 1000,
-              maxHeight: '400px',
-              overflowY: 'auto'
+              borderRadius: '8px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+              border: '1px solid rgba(0, 0, 0, 0.05)',
+              padding: '8px',
+              width: '140px',
+              zIndex: 1000
             }}
           >
-            <div style={{
-              fontSize: '16px',
-              fontWeight: '600',
-              marginBottom: '16px',
-              color: '#111827'
-            }}>
-              Choose Form Theme
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {themes.map((theme) => (
-                <div
-                  key={theme.value}
-                  onClick={() => handleThemeSelect(theme.value)}
-                  style={{
-                    padding: '12px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    ...themePreviewStyles[theme.value],
-                    opacity: currentTheme === theme.value ? 1 : 0.85,
-                    transform: currentTheme === theme.value ? 'scale(1.02)' : 'scale(1)',
-                    position: 'relative'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = '1';
-                    e.currentTarget.style.transform = 'scale(1.02)';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (currentTheme !== theme.value) {
-                      e.currentTarget.style.opacity = '0.85';
-                      e.currentTarget.style.transform = 'scale(1)';
-                    }
-                  }}
-                >
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                  }}>
-                    <div>
-                      <div style={{
-                        fontSize: '15px',
-                        fontWeight: '600',
-                        marginBottom: '4px'
-                      }}>
-                        {theme.label}
-                      </div>
-                      <div style={{
-                        fontSize: '12px',
-                        opacity: 0.8
-                      }}>
-                        {theme.description}
-                      </div>
-                    </div>
-                    {currentTheme === theme.value && (
-                      <Check 
-                        size={20} 
-                        style={{
-                          color: theme.value === 'dark' ? '#7a73ff' : '#3b82f6'
-                        }}
-                      />
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div style={{
-              marginTop: '16px',
-              padding: '12px',
-              backgroundColor: '#f3f4f6',
-              borderRadius: '8px',
-              fontSize: '12px',
-              color: '#6b7280',
-              lineHeight: '1.5'
-            }}>
-              <strong>Pro Tip:</strong> Themes affect how your form appears to users when shared. Choose one that matches your brand identity.
-            </div>
+            {themes.map((theme) => (
+              <div
+                key={theme.value}
+                onClick={() => handleThemeSelect(theme.value)}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'background 0.2s ease',
+                  fontSize: '13px',
+                  fontWeight: currentTheme === theme.value ? '600' : '400',
+                  color: currentTheme === theme.value ? theme.color : '#374151',
+                  background: currentTheme === theme.value ? `${theme.color}10` : 'transparent'
+                }}
+                onMouseEnter={(e) => {
+                  if (currentTheme !== theme.value) {
+                    e.currentTarget.style.background = '#f3f4f6';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentTheme !== theme.value) {
+                    e.currentTarget.style.background = 'transparent';
+                  }
+                }}
+              >
+                <div style={{
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '3px',
+                  background: theme.color,
+                  border: theme.value === 'minimal' ? '1px solid #000' : 'none'
+                }} />
+                {theme.label}
+              </div>
+            ))}
           </div>
         </>
       )}

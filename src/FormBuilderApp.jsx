@@ -57,6 +57,45 @@ const FormBuilderApp = () => {
   const [templateKey, setTemplateKey] = useState(Date.now());
   const [currentTheme, setCurrentTheme] = useState('modern'); // Add theme state
 
+  // Get theme-specific styles for form preview
+  const getThemeStyles = (themeName) => {
+    const themeStyles = {
+      modern: {
+        padding: '24px',
+        background: '#ffffff',
+        borderRadius: '8px',
+        border: '1px solid #e5e7eb'
+      },
+      glass: {
+        padding: '24px',
+        background: 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '16px',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.1)'
+      },
+      minimal: {
+        padding: '24px',
+        background: '#ffffff',
+        border: '2px solid #000000',
+        borderRadius: '0'
+      },
+      corporate: {
+        padding: '24px',
+        background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)',
+        borderRadius: '4px',
+        border: '1px solid #e0e0e0'
+      },
+      dark: {
+        padding: '24px',
+        background: 'linear-gradient(135deg, #1e1e2e 0%, #151521 100%)',
+        borderRadius: '12px',
+        border: '1px solid rgba(255, 255, 255, 0.1)'
+      }
+    };
+    return themeStyles[themeName] || themeStyles.modern;
+  };
+
   // Check for template from landing pages on component mount
   useEffect(() => {
     const selectedTemplate = sessionStorage.getItem('selectedTemplate');
@@ -417,27 +456,29 @@ const FormBuilderApp = () => {
               <Layout.Flex gap={2} align="center">
                 <Button
                   variant={currentView === 'builder' ? 'primary' : 'secondary'}
-                  size="md"
+                  size="sm"
                   onClick={() => setCurrentView('builder')}
+                  style={{ minWidth: '80px' }}
                 >
                   Builder
                 </Button>
                 <Button
                   variant={currentView === 'preview' ? 'primary' : 'secondary'}
-                  size="md"
-                  leftIcon={<Eye size={16} />}
+                  size="sm"
+                  leftIcon={<Eye size={14} />}
                   onClick={() => setCurrentView('preview')}
+                  style={{ minWidth: '120px' }}
                 >
                   Preview & Test
                 </Button>
-                <ThemeSelector 
-                  currentTheme={currentTheme}
-                  onThemeChange={setCurrentTheme}
-                  isPreview={currentView === 'preview'}
-                />
               </Layout.Flex>
 
-              <div style={{ textAlign: 'center' }}>
+              <div style={{ 
+                textAlign: 'center',
+                flex: '1',
+                paddingLeft: theme.spacing[8],
+                paddingRight: theme.spacing[8]
+              }}>
                 <h2 style={{
                   fontSize: theme.typography.fontSize['2xl'],
                   fontWeight: theme.typography.fontWeight.bold,
@@ -448,7 +489,7 @@ const FormBuilderApp = () => {
                   Form Builder
                 </h2>
                 <p style={{
-                  fontSize: theme.typography.fontSize.base,
+                  fontSize: theme.typography.fontSize.sm,
                   color: theme.colors.secondary[600],
                   margin: 0
                 }}>
@@ -457,22 +498,31 @@ const FormBuilderApp = () => {
               </div>
               
               <Layout.Flex gap={2} align="center">
+                {currentView === 'preview' && (
+                  <ThemeSelector 
+                    currentTheme={currentTheme}
+                    onThemeChange={setCurrentTheme}
+                    isPreview={true}
+                  />
+                )}
                 <Button
                   variant="secondary"
-                  size="md"
-                  leftIcon={<Share2 size={16} />}
+                  size="sm"
+                  leftIcon={<Share2 size={14} />}
                   onClick={() => setShowShareModal(true)}
                   disabled={formFields.length === 0}
+                  style={{ minWidth: '100px' }}
                 >
                   Share Form
                 </Button>
                 <Button
                   variant="primary"
-                  size="md"
-                  leftIcon={<Download size={16} />}
+                  size="sm"
+                  leftIcon={<Download size={14} />}
                   onClick={generatePDF}
                   disabled={isGeneratingPDF || formFields.length === 0}
                   loading={isGeneratingPDF}
+                  style={{ minWidth: '120px' }}
                 >
                   {isGeneratingPDF ? 'Generating...' : 'Generate PDF'}
                 </Button>
@@ -504,24 +554,26 @@ const FormBuilderApp = () => {
                       No fields added yet. Go to Builder to add fields.
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing[6] }}>
-                      {formFields.map(field => (
-                        <div key={field.id}>
-                          <label style={{
-                            display: 'block',
-                            fontSize: theme.typography.fontSize.sm,
-                            fontWeight: theme.typography.fontWeight.medium,
-                            color: theme.colors.secondary[700],
-                            marginBottom: theme.spacing[2]
-                          }}>
-                            {field.label}
-                            {field.required && (
-                              <span style={{ color: theme.colors.error[500], marginLeft: theme.spacing[1] }}>*</span>
-                            )}
-                          </label>
-                          {renderFormField(field)}
-                        </div>
-                      ))}
+                    <div className={`form-theme-preview theme-${currentTheme}`} style={getThemeStyles(currentTheme)}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing[6] }}>
+                        {formFields.map(field => (
+                          <div key={field.id}>
+                            <label style={{
+                              display: 'block',
+                              fontSize: theme.typography.fontSize.sm,
+                              fontWeight: theme.typography.fontWeight.medium,
+                              color: currentTheme === 'dark' ? '#e0e0f0' : theme.colors.secondary[700],
+                              marginBottom: theme.spacing[2]
+                            }}>
+                              {field.label}
+                              {field.required && (
+                                <span style={{ color: theme.colors.error[500], marginLeft: theme.spacing[1] }}>*</span>
+                              )}
+                            </label>
+                            {renderFormField(field)}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </Card.Content>
