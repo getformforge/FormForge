@@ -328,23 +328,24 @@ const PublicFormPage = () => {
     <Layout>
       <Layout.Section padding="lg" style={{ 
         minHeight: '100vh',
-        background: formTheme?.id === 'dark' ? '#0f0f1a' : 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
+        background: formTheme?.id === 'dark' ? '#0f0f1a' : 
+                   formTheme?.id === 'glass' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' :
+                   'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
       }}>
         <Layout.Container size="sm">
           <div 
-            className={`form-theme-${formTheme?.id || 'modern'}`}
             style={{
-              ...themeStyles.container,
-              margin: '0 auto',
+              ...(themeStyles.container || {}),
+              margin: '40px auto',
               maxWidth: '600px'
             }}
           >
             <div>
-              <h1 className="form-title" style={themeStyles.title}>
+              <h1 style={themeStyles.title || { fontSize: '32px', fontWeight: '700', color: '#111827', marginBottom: '8px' }}>
                 {form.title}
               </h1>
               {form.description && (
-                <p className="form-description" style={themeStyles.description}>
+                <p style={themeStyles.description || { fontSize: '16px', color: '#6B7280', marginBottom: '32px' }}>
                   {form.description}
                 </p>
               )}

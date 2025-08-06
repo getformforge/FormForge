@@ -13,7 +13,7 @@ import Layout from './components/layout/Layout';
 import Header from './components/layout/Header';
 import Button from './components/ui/Button';
 import Card from './components/ui/Card';
-import EnhancedFormBuilder from './components/form/EnhancedFormBuilder';
+import EnhancedFormBuilderDnD from './components/form/EnhancedFormBuilderDnD';
 import { 
   AdvancedTextArea,
   AdvancedDatePicker,
@@ -271,22 +271,24 @@ const FormBuilderApp = () => {
       const margin = 20;
       let currentY = 40;
 
-      // Professional header
-      pdf.setFillColor(255, 107, 53);
-      pdf.rect(0, 0, pageWidth, 35, 'F');
-      
-      pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(24);
+      // Clean, professional header
+      pdf.setTextColor(51, 51, 51);
+      pdf.setFontSize(18);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('Professional Form Submission', pageWidth / 2, 25, { align: 'center' });
+      pdf.text('Form Submission', pageWidth / 2, currentY, { align: 'center' });
+      currentY += 12;
       
-      pdf.setTextColor(0, 0, 0);
-      currentY = 60;
+      // Date line
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(102, 102, 102);
+      pdf.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, currentY, { align: 'center' });
+      currentY += 15;
       
-      // Date
-      pdf.setFontSize(12);
-      pdf.text(`Generated: ${new Date().toLocaleDateString()}`, margin, currentY);
-      currentY += 25;
+      // Separator line
+      pdf.setDrawColor(200, 200, 200);
+      pdf.line(margin, currentY, pageWidth - margin, currentY);
+      currentY += 20;
       
       // Form fields
       formFields.forEach((field) => {
@@ -508,7 +510,7 @@ const FormBuilderApp = () => {
           </div>
 
           {currentView === 'builder' && (
-            <EnhancedFormBuilder
+            <EnhancedFormBuilderDnD
               key={templateKey}
               onFieldsChange={handleFieldsChange}
               initialFields={formFields}
@@ -592,20 +594,28 @@ const FormBuilderApp = () => {
                     minHeight: '400px'
                   }}>
                     <div style={{ textAlign: 'center', marginBottom: theme.spacing[6] }}>
-                      <div style={{
-                        background: theme.colors.primary[500],
-                        color: 'white',
-                        padding: theme.spacing[4],
-                        borderRadius: theme.borderRadius.md,
-                        marginBottom: theme.spacing[4]
+                      <h3 style={{ 
+                        margin: 0, 
+                        fontSize: theme.typography.fontSize.xl,
+                        fontWeight: theme.typography.fontWeight.bold,
+                        color: theme.colors.secondary[900],
+                        marginBottom: theme.spacing[2]
                       }}>
-                        <h3 style={{ margin: 0, fontSize: theme.typography.fontSize.lg }}>
-                          Professional Form Submission
-                        </h3>
-                      </div>
-                      <p style={{ color: theme.colors.secondary[600], margin: 0 }}>
-                        Generated: {new Date().toLocaleDateString()}
+                        Form Submission
+                      </h3>
+                      <p style={{ 
+                        color: theme.colors.secondary[600], 
+                        margin: 0,
+                        fontSize: theme.typography.fontSize.sm 
+                      }}>
+                        Generated on {new Date().toLocaleDateString()}
                       </p>
+                      <div style={{
+                        height: '1px',
+                        background: theme.colors.secondary[200],
+                        marginTop: theme.spacing[4],
+                        marginBottom: theme.spacing[4]
+                      }} />
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing[4] }}>
