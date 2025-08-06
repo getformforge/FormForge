@@ -62,7 +62,7 @@ service cloud.firestore {
     match /submissions/{submissionId} {
       // Only form owner can read submissions
       allow read: if isAuthenticated() && 
-        (resource.data.ownerId == request.auth.uid ||
+        (resource.data.formOwnerId == request.auth.uid ||
          (exists(/databases/$(database)/documents/forms/$(resource.data.formId)) &&
           get(/databases/$(database)/documents/forms/$(resource.data.formId)).data.ownerId == request.auth.uid));
       
@@ -79,7 +79,7 @@ service cloud.firestore {
       
       // Only submission owner can delete
       allow delete: if isAuthenticated() && 
-        (resource.data.ownerId == request.auth.uid ||
+        (resource.data.formOwnerId == request.auth.uid ||
          (exists(/databases/$(database)/documents/forms/$(resource.data.formId)) &&
           get(/databases/$(database)/documents/forms/$(resource.data.formId)).data.ownerId == request.auth.uid));
     }

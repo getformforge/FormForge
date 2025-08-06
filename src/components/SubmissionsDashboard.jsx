@@ -26,15 +26,23 @@ const SubmissionsDashboard = ({ onClose }) => {
           getFormSubmissions(currentUser.uid)
         ]);
 
+        console.log('Forms result:', formsResult);
+        console.log('Submissions result:', submissionsResult);
+
         if (formsResult.success) {
           setForms(formsResult.forms);
+          console.log('Loaded forms:', formsResult.forms);
         }
 
         if (submissionsResult.success) {
           setSubmissions(submissionsResult.submissions);
+          console.log('Loaded submissions:', submissionsResult.submissions);
+        } else {
+          console.error('Failed to load submissions:', submissionsResult.error);
         }
       } catch (error) {
         console.error('Error loading submissions data:', error);
+        alert('Error loading submissions. Check the console for details.');
       } finally {
         setLoading(false);
       }
