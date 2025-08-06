@@ -11,8 +11,9 @@ import SubmissionsDashboard from './components/SubmissionsDashboard';
 import Layout from './components/layout/Layout';
 import Header from './components/layout/Header';
 import Button from './components/ui/Button';
+import UserDropdown from './components/UserDropdown';
 import Card from './components/ui/Card';
-import ModernFormBuilder from './components/form/ModernFormBuilder';
+import RowBasedFormBuilder from './components/form/RowBasedFormBuilder';
 import { 
   AdvancedTextArea,
   AdvancedDatePicker,
@@ -54,6 +55,10 @@ const FormBuilderApp = () => {
   const [isPublishing, setIsPublishing] = useState(false);
   const [statsRefreshTrigger, setStatsRefreshTrigger] = useState(0);
   const [templateKey, setTemplateKey] = useState(Date.now());
+  const [formSettings, setFormSettings] = useState({
+    pdfHeader: '',
+    pdfSubheader: ''
+  });
 
 
   // Check for template from landing pages on component mount
@@ -266,6 +271,28 @@ const FormBuilderApp = () => {
       const margin = 20;
       let currentY = 30;
       
+      // Add custom header if set
+      if (formSettings.pdfHeader) {
+        pdf.setFontSize(20);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(51, 51, 51);
+        pdf.text(formSettings.pdfHeader, pageWidth / 2, currentY, { align: 'center' });
+        currentY += 10;
+        
+        if (formSettings.pdfSubheader) {
+          pdf.setFontSize(14);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(102, 102, 102);
+          pdf.text(formSettings.pdfSubheader, pageWidth / 2, currentY, { align: 'center' });
+          currentY += 8;
+        }
+        
+        currentY += 10;
+        pdf.setDrawColor(200, 200, 200);
+        pdf.line(margin, currentY, pageWidth - margin, currentY);
+        currentY += 15;
+      }
+      
       // Process form fields
       formFields.forEach((field) => {
         if (currentY > 250) {
@@ -421,27 +448,12 @@ const FormBuilderApp = () => {
         subtitle="Create, share, and collect form responses • Generate professional PDFs"
         showHomeButton={true}
         onHome={() => window.location.href = '/'}
-        user={currentUser}
-        onUserClick={() => setShowUserDashboard(true)}
         rightContent={
-          <Layout.Flex gap={2}>
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon={<BarChart3 size={16} />}
-              onClick={() => setShowSubmissions(true)}
-            >
-              View Submissions
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon={<Settings size={16} />}
-              onClick={() => setShowTemplates(true)}
-            >
-              Templates
-            </Button>
-          </Layout.Flex>
+          <UserDropdown
+            user={currentUser}
+            onProfileClick={() => setShowUserDashboard(true)}
+            onSubmissionsClick={() => setShowSubmissions(true)}
+          />
         }
       />
 
@@ -519,11 +531,25 @@ const FormBuilderApp = () => {
           </div>
 
           {currentView === 'builder' && (
-            <ModernFormBuilder
-              key={templateKey}
-              onFieldsChange={handleFieldsChange}
-              initialFields={formFields}
-            />
+            <div>
+              <div style={{ marginBottom: theme.spacing[4], display: 'flex', justifyContent: 'flex-end' }}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  leftIcon={<Settings size={16} />}
+                  onClick={() => setShowTemplates(true)}
+                >
+                  Templates
+                </Button>
+              </div>
+              <RowBasedFormBuilder
+                key={templateKey}
+                onFieldsChange={handleFieldsChange}
+                initialFields={formFields}
+                formSettings={formSettings}
+                onSettingsChange={setFormSettings}
+              />
+            </div>
           )}
 
           {currentView === 'preview' && (

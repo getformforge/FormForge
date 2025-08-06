@@ -25,8 +25,9 @@ const Header = ({
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
     }}>
       <div style={{ padding: `0 ${theme.spacing[6]}`, maxWidth: '100%' }}>
-        <Layout.Flex justify="space-between" align="center">
-          <Layout.Flex align="center" gap={4}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', alignItems: 'center' }}>
+          {/* Left Section - Home Button */}
+          <div>
             {showHomeButton && (
               <Button
                 variant="ghost"
@@ -37,8 +38,10 @@ const Header = ({
                 Home
               </Button>
             )}
-            
-            <div>
+          </div>
+          
+          {/* Center Section - Title */}
+          <div style={{ textAlign: 'center' }}>
               <h1 style={{
                 fontSize: theme.typography.fontSize['2xl'],
                 fontWeight: theme.typography.fontWeight.black,
@@ -63,10 +66,10 @@ const Header = ({
                   {subtitle}
                 </p>
               )}
-            </div>
-          </Layout.Flex>
+          </div>
 
-          <Layout.Flex align="center" gap={3}>
+          {/* Right Section - User and Actions */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: theme.spacing[3] }}>
             {rightContent}
             
             {user && (
@@ -78,8 +81,8 @@ const Header = ({
                 {user.displayName || user.email || 'Account'}
               </Button>
             )}
-          </Layout.Flex>
-        </Layout.Flex>
+          </div>
+        </div>
       </div>
     </div>
   );
