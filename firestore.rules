@@ -1,48 +1,92 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
     
-    // Users can read and write their own user document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    // Users collection - strict access control
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId);
+      // Prevent users from modifying sensitive fields
+      allow update: if isOwner(userId) && 
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['plan', 'stripeCustomerId', 'stripeSubscriptionId']) ||
+         request.auth.token.admin == true);
+      allow delete: if false; // Never allow deletion
     }
     
     // Form templates - users can manage their own saved templates
     match /formTemplates/{templateId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.keys().hasAll(['userId', 'name', 'fields']);
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId; // Can't change owner
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
     
-    // Published forms - owners can create/read/update, public can read
+    // Published forms - secure form sharing
     match /forms/{formId} {
-      // Form owners can create, read, and update their forms
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId;
-      allow read, update: if request.auth != null && request.auth.uid == resource.data.ownerId;
-      
-      // Public users can read published forms (for form submission)
+      // Anyone can read published forms (for public form viewing)
       allow read: if resource.data.isPublished == true;
+      
+      // Only authenticated users can create forms with validation
+      allow create: if isAuthenticated() && 
+        request.resource.data.ownerId == request.auth.uid &&
+        request.resource.data.keys().hasAll(['title', 'fields', 'ownerId', 'isPublished', 'createdAt']) &&
+        request.resource.data.fields.size() > 0 &&
+        request.resource.data.fields.size() <= 50; // Limit fields to prevent abuse
+      
+      // Only form owner can update their forms
+      allow update: if isAuthenticated() && 
+        resource.data.ownerId == request.auth.uid &&
+        request.resource.data.ownerId == resource.data.ownerId; // Can't change owner
+      
+      // Only form owner can delete
+      allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
     }
     
-    // Form submissions - owners can read, anyone can create submissions to published forms
+    // Form submissions - controlled access
     match /submissions/{submissionId} {
-      // Form owners can read submissions for their forms
-      allow read: if request.auth != null && request.auth.uid == resource.data.formOwnerId;
+      // Only form owner can read submissions
+      allow read: if isAuthenticated() && 
+        (resource.data.ownerId == request.auth.uid ||
+         (exists(/databases/$(database)/documents/forms/$(resource.data.formId)) &&
+          get(/databases/$(database)/documents/forms/$(resource.data.formId)).data.ownerId == request.auth.uid));
       
-      // Anyone can create submissions to published forms
-      allow create: if true;
+      // Anyone can create a submission to a published form with validation
+      allow create: if 
+        request.resource.data.keys().hasAll(['formId', 'responses', 'submittedAt']) &&
+        exists(/databases/$(database)/documents/forms/$(request.resource.data.formId)) &&
+        get(/databases/$(database)/documents/forms/$(request.resource.data.formId)).data.isPublished == true &&
+        request.resource.data.responses.size() > 0 &&
+        request.resource.data.responses.size() <= 100; // Limit response size
+      
+      // No updates allowed to submissions (immutable)
+      allow update: if false;
+      
+      // Only submission owner can delete
+      allow delete: if isAuthenticated() && 
+        (resource.data.ownerId == request.auth.uid ||
+         (exists(/databases/$(database)/documents/forms/$(resource.data.formId)) &&
+          get(/databases/$(database)/documents/forms/$(resource.data.formId)).data.ownerId == request.auth.uid));
     }
     
-    // Published forms collection (legacy - keeping for compatibility)
-    match /publishedForms/{formId} {
-      // Form owners can create and manage their published forms
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update: if request.auth != null && request.auth.uid == resource.data.userId;
-      
-      // Public users can read published forms
-      allow read: if true;
-      
-      // Anyone can update submissions array (for form responses)
-      allow update: if true;
+    // Deny all other access by default
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

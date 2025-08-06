@@ -24,6 +24,7 @@ import {
 } from './components/form/AdvancedFieldTypes';
 import { theme } from './styles/theme';
 import jsPDF from 'jspdf';
+import rateLimitService from './services/rateLimitService';
 import { 
   saveFormTemplate, 
   getUserFormTemplates, 
@@ -188,6 +189,15 @@ const FormBuilderApp = () => {
   };
 
   const generatePDF = async () => {
+    // Check rate limiting
+    const rateLimitCheck = rateLimitService.checkAndRecord('pdf_generation', currentUser?.uid || 'anonymous');
+    if (!rateLimitCheck.allowed) {
+      const remaining = rateLimitService.getTimeUntilReset('pdf_generation', currentUser?.uid || 'anonymous');
+      const timeStr = rateLimitService.formatTimeRemaining(remaining);
+      alert(`❌ ${rateLimitCheck.message}\n\nYou can try again in ${timeStr}.`);
+      return;
+    }
+
     // Validate required fields
     const missingFields = formFields
       .filter(field => field.required && !formData[field.id])
@@ -302,6 +312,15 @@ const FormBuilderApp = () => {
   };
 
   const handlePublishForm = async (formInfo) => {
+    // Check rate limiting
+    const rateLimitCheck = rateLimitService.checkAndRecord('form_creation', currentUser?.uid);
+    if (!rateLimitCheck.allowed) {
+      const remaining = rateLimitService.getTimeUntilReset('form_creation', currentUser?.uid);
+      const timeStr = rateLimitService.formatTimeRemaining(remaining);
+      alert(`❌ ${rateLimitCheck.message}\n\nYou can try again in ${timeStr}.`);
+      return { success: false };
+    }
+
     setIsPublishing(true);
 
     try {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Send, CheckCircle, AlertCircle } from 'lucide-react';
+import rateLimitService from '../services/rateLimitService';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
@@ -56,6 +57,16 @@ const PublicFormPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check rate limiting (use formId as identifier for per-form limiting)
+    const rateLimitCheck = rateLimitService.checkAndRecord('form_submission', formId);
+    if (!rateLimitCheck.allowed) {
+      const remaining = rateLimitService.getTimeUntilReset('form_submission', formId);
+      const timeStr = rateLimitService.formatTimeRemaining(remaining);
+      alert(`❌ ${rateLimitCheck.message}\n\nYou can try again in ${timeStr}.`);
+      return;
+    }
+
     setSubmitting(true);
 
     try {

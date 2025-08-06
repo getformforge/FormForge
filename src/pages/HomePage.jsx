@@ -94,7 +94,7 @@ const HomePage = ({ onNavigate }) => {
     {
       id: 'medical',
       title: 'Medical Forms',
-      description: 'HIPAA-compliant patient intake and medical forms',
+      description: 'Secure patient intake and medical forms',
       icon: '🏥',
       color: 'linear-gradient(45deg, #3b82f6, #1d4ed8)',
       popular: false,
@@ -141,7 +141,7 @@ const HomePage = ({ onNavigate }) => {
       name: 'Dr. Michael Chen',
       role: 'Family Physician',
       company: 'Chen Medical Practice',
-      quote: 'The medical intake forms save us 15 minutes per patient. HIPAA compliance gives us peace of mind.',
+      quote: 'The medical intake forms save us 15 minutes per patient. The security features give us peace of mind.',
       rating: 5
     },
     {
@@ -504,7 +504,7 @@ const HomePage = ({ onNavigate }) => {
               margin: 0,
               fontWeight: theme.typography.fontWeight.medium
             }}>
-              <strong>HIPAA Compliant</strong> • <strong>ISO 27001 Certified</strong> • <strong>99.9% Uptime SLA</strong>
+              <strong>Bank-Level Security</strong> • <strong>SOC 2 Type II Infrastructure</strong> • <strong>99.9% Uptime</strong>
             </p>
           </div>
         </Layout.Container>

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { User, Mail, Lock, Eye, EyeOff, Sparkles, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import errorService from '../services/errorService';
+import rateLimitService from '../services/rateLimitService';
 
 const Auth = ({ onAuthSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -15,6 +17,15 @@ const Auth = ({ onAuthSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check rate limiting
+    const rateLimitCheck = rateLimitService.checkAndRecord('authentication', email);
+    if (!rateLimitCheck.allowed) {
+      const remaining = rateLimitService.getTimeUntilReset('authentication', email);
+      const timeStr = rateLimitService.formatTimeRemaining(remaining);
+      setError(`Too many attempts. Please try again in ${timeStr}.`);
+      return;
+    }
     
     if (password.length < 6) {
       setError('Password must be at least 6 characters');
@@ -37,15 +48,9 @@ const Auth = ({ onAuthSuccess }) => {
       }
       onAuthSuccess?.();
     } catch (error) {
-      console.error('Auth error:', error);
-      setError(
-        error.code === 'auth/user-not-found' ? 'No account found with this email' :
-        error.code === 'auth/wrong-password' ? 'Incorrect password' :
-        error.code === 'auth/email-already-in-use' ? 'Email already registered' :
-        error.code === 'auth/invalid-email' ? 'Invalid email address' :
-        error.code === 'auth/weak-password' ? 'Password is too weak' :
-        'Authentication failed. Please try again.'
-      );
+      // Use secure error handling
+      const errorInfo = errorService.handle(error, 'authentication');
+      setError(errorInfo.message);
     } finally {
       setLoading(false);
     }
