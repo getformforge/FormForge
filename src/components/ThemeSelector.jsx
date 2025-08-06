@@ -22,35 +22,37 @@ const ThemeSelector = ({ currentTheme, onThemeChange, isPreview = false }) => {
 
   return (
     <div style={{ position: 'relative' }}>
-      <button
+      <div
         onClick={() => setShowThemePanel(!showThemePanel)}
         style={{
-          display: 'flex',
+          display: 'inline-flex',
           alignItems: 'center',
-          gap: '6px',
-          padding: '6px 12px',
-          background: 'rgba(100, 116, 139, 0.1)',
+          gap: '8px',
+          padding: '10px 16px',
+          backgroundColor: 'rgba(100, 116, 139, 0.1)',
           border: '2px solid rgba(100, 116, 139, 0.2)',
           borderRadius: '8px',
-          fontSize: '13px',
+          fontSize: '14px',
           fontWeight: '500',
           color: theme.colors.secondary[700],
           cursor: 'pointer',
           transition: 'all 0.2s ease',
-          minWidth: '110px'
+          userSelect: 'none'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(100, 116, 139, 0.15)';
+          e.currentTarget.style.backgroundColor = 'rgba(100, 116, 139, 0.15)';
           e.currentTarget.style.borderColor = 'rgba(100, 116, 139, 0.3)';
+          e.currentTarget.style.color = theme.colors.secondary[800];
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(100, 116, 139, 0.1)';
+          e.currentTarget.style.backgroundColor = 'rgba(100, 116, 139, 0.1)';
           e.currentTarget.style.borderColor = 'rgba(100, 116, 139, 0.2)';
+          e.currentTarget.style.color = theme.colors.secondary[700];
         }}
       >
-        <Palette size={14} />
+        <Palette size={16} />
         <span>Theme: {currentThemeData.label}</span>
-      </button>
+      </div>
 
       {showThemePanel && (
         <>
@@ -72,53 +74,54 @@ const ThemeSelector = ({ currentTheme, onThemeChange, isPreview = false }) => {
           <div
             style={{
               position: 'absolute',
-              top: '36px',
+              top: '44px',
               right: '0',
               backgroundColor: '#ffffff',
               borderRadius: '8px',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-              border: '1px solid rgba(0, 0, 0, 0.05)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+              border: '1px solid rgba(226, 232, 240, 0.8)',
               padding: '8px',
-              width: '140px',
+              width: '160px',
               zIndex: 1000
             }}
           >
-            {themes.map((theme) => (
+            {themes.map((themeOption) => (
               <div
-                key={theme.value}
-                onClick={() => handleThemeSelect(theme.value)}
+                key={themeOption.value}
+                onClick={() => handleThemeSelect(themeOption.value)}
                 style={{
-                  padding: '8px 12px',
+                  padding: '10px 12px',
                   borderRadius: '6px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
+                  gap: '10px',
                   transition: 'background 0.2s ease',
-                  fontSize: '13px',
-                  fontWeight: currentTheme === theme.value ? '600' : '400',
-                  color: currentTheme === theme.value ? theme.color : '#374151',
-                  background: currentTheme === theme.value ? `${theme.color}10` : 'transparent'
+                  fontSize: '14px',
+                  fontWeight: currentTheme === themeOption.value ? '600' : '400',
+                  color: currentTheme === themeOption.value ? themeOption.color : '#374151',
+                  backgroundColor: currentTheme === themeOption.value ? `${themeOption.color}10` : 'transparent'
                 }}
                 onMouseEnter={(e) => {
-                  if (currentTheme !== theme.value) {
-                    e.currentTarget.style.background = '#f3f4f6';
+                  if (currentTheme !== themeOption.value) {
+                    e.currentTarget.style.backgroundColor = '#f9fafb';
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (currentTheme !== theme.value) {
-                    e.currentTarget.style.background = 'transparent';
+                  if (currentTheme !== themeOption.value) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
                   }
                 }}
               >
                 <div style={{
-                  width: '12px',
-                  height: '12px',
+                  width: '14px',
+                  height: '14px',
                   borderRadius: '3px',
-                  background: theme.color,
-                  border: theme.value === 'minimal' ? '1px solid #000' : 'none'
+                  backgroundColor: themeOption.color,
+                  border: themeOption.value === 'minimal' ? '1px solid #e5e7eb' : 'none',
+                  flexShrink: 0
                 }} />
-                {theme.label}
+                <span>{themeOption.label}</span>
               </div>
             ))}
           </div>

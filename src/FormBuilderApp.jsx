@@ -430,25 +430,6 @@ const FormBuilderApp = () => {
       <Layout.Section padding="lg">
         <Layout.Container>
           <PlanLimits onUpgrade={() => setShowPricingModal(true)} refreshTrigger={statsRefreshTrigger} />
-          
-          {formFields.length > 0 && currentView === 'preview' && (
-            <div style={{
-              background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-              border: `1px solid ${theme.colors.secondary[200]}`,
-              borderRadius: theme.borderRadius.lg,
-              padding: theme.spacing[4],
-              marginBottom: theme.spacing[6],
-              textAlign: 'center'
-            }}>
-              <p style={{
-                fontSize: theme.typography.fontSize.sm,
-                color: theme.colors.secondary[600],
-                margin: 0
-              }}>
-                💡 <strong>Tip:</strong> Use "Share Form" to collect responses from others, or "View Submissions" to see collected data
-              </p>
-            </div>
-          )}
 
           {/* Form Builder with integrated preview toggle */}
           <div style={{ marginBottom: theme.spacing[6] }}>
@@ -456,18 +437,16 @@ const FormBuilderApp = () => {
               <Layout.Flex gap={2} align="center">
                 <Button
                   variant={currentView === 'builder' ? 'primary' : 'secondary'}
-                  size="sm"
+                  size="md"
                   onClick={() => setCurrentView('builder')}
-                  style={{ minWidth: '80px' }}
                 >
                   Builder
                 </Button>
                 <Button
                   variant={currentView === 'preview' ? 'primary' : 'secondary'}
-                  size="sm"
-                  leftIcon={<Eye size={14} />}
+                  size="md"
+                  leftIcon={<Eye size={16} />}
                   onClick={() => setCurrentView('preview')}
-                  style={{ minWidth: '120px' }}
                 >
                   Preview & Test
                 </Button>
@@ -507,22 +486,20 @@ const FormBuilderApp = () => {
                 )}
                 <Button
                   variant="secondary"
-                  size="sm"
-                  leftIcon={<Share2 size={14} />}
+                  size="md"
+                  leftIcon={<Share2 size={16} />}
                   onClick={() => setShowShareModal(true)}
                   disabled={formFields.length === 0}
-                  style={{ minWidth: '100px' }}
                 >
                   Share Form
                 </Button>
                 <Button
                   variant="primary"
-                  size="sm"
-                  leftIcon={<Download size={14} />}
+                  size="md"
+                  leftIcon={<Download size={16} />}
                   onClick={generatePDF}
                   disabled={isGeneratingPDF || formFields.length === 0}
                   loading={isGeneratingPDF}
-                  style={{ minWidth: '120px' }}
                 >
                   {isGeneratingPDF ? 'Generating...' : 'Generate PDF'}
                 </Button>
@@ -539,16 +516,34 @@ const FormBuilderApp = () => {
           )}
 
           {currentView === 'preview' && (
-            <Layout.Grid cols={2} gap={8}>
-              <Card variant="glass" padding="lg">
-                <Card.Header>
-                  <Card.Title style={{ color: theme.colors.secondary[900] }}>Form Preview</Card.Title>
-                  <Card.Subtitle style={{ color: theme.colors.secondary[600] }}>
-                    Fill out your form to see how it works
-                  </Card.Subtitle>
-                </Card.Header>
+            <>
+              <div style={{
+                background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                border: `1px solid ${theme.colors.secondary[200]}`,
+                borderRadius: theme.borderRadius.lg,
+                padding: theme.spacing[4],
+                marginBottom: theme.spacing[6],
+                textAlign: 'center'
+              }}>
+                <p style={{
+                  fontSize: theme.typography.fontSize.sm,
+                  color: theme.colors.secondary[600],
+                  margin: 0
+                }}>
+                  💡 <strong>Tip:</strong> The theme you select here will be applied when you share this form with others
+                </p>
+              </div>
+              
+              <Layout.Grid cols={2} gap={8}>
+                <Card variant="glass" padding="lg">
+                  <Card.Header>
+                    <Card.Title style={{ color: theme.colors.secondary[900] }}>Form Preview</Card.Title>
+                    <Card.Subtitle style={{ color: theme.colors.secondary[600] }}>
+                      This shows how your shared form will look with the selected theme
+                    </Card.Subtitle>
+                  </Card.Header>
 
-                <Card.Content>
+                  <Card.Content>
                   {formFields.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: theme.spacing[8], color: theme.colors.secondary[500] }}>
                       No fields added yet. Go to Builder to add fields.
@@ -636,7 +631,8 @@ const FormBuilderApp = () => {
                   </div>
                 </Card.Content>
               </Card>
-            </Layout.Grid>
+              </Layout.Grid>
+            </>
           )}
         </Layout.Container>
       </Layout.Section>
