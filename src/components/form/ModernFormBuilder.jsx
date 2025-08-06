@@ -319,6 +319,7 @@ const SortableField = ({ field, onUpdateField, onDeleteField, onDuplicateField }
 const ModernFormBuilder = ({ onFieldsChange, initialFields = [] }) => {
   const [fields, setFields] = useState(initialFields);
   const [activeTab, setActiveTab] = useState('input');
+  const [previewMode, setPreviewMode] = useState('edit'); // 'edit' or 'preview'
   
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -429,6 +430,158 @@ const ModernFormBuilder = ({ onFieldsChange, initialFields = [] }) => {
     { id: 'selection', label: 'Selection', icon: <CheckSquare size={16} /> },
     { id: 'advanced', label: 'Advanced', icon: <Star size={16} /> }
   ];
+
+  // Group fields into rows based on their widths
+  const getFieldRows = () => {
+    const rows = [];
+    let currentRow = [];
+    let currentRowWidth = 0;
+
+    fields.forEach(field => {
+      const fieldWidth = field.width || 'full';
+      const widthMap = {
+        'full': 1,
+        'half': 0.5,
+        'third': 0.333,
+        'two-thirds': 0.666
+      };
+      const width = widthMap[fieldWidth];
+
+      if (currentRowWidth + width > 1.01 || fieldWidth === 'full') {
+        if (currentRow.length > 0) {
+          rows.push(currentRow);
+        }
+        currentRow = [field];
+        currentRowWidth = width;
+      } else {
+        currentRow.push(field);
+        currentRowWidth += width;
+      }
+    });
+
+    if (currentRow.length > 0) {
+      rows.push(currentRow);
+    }
+
+    return rows;
+  };
+
+  const renderFieldInPreview = (field) => {
+    const widthMap = {
+      'full': '100%',
+      'half': 'calc(50% - 8px)',
+      'third': 'calc(33.333% - 10px)',
+      'two-thirds': 'calc(66.666% - 8px)'
+    };
+
+    const fieldWidth = widthMap[field.width || 'full'];
+
+    // Layout fields
+    if (field.type === 'heading1') {
+      return (
+        <div style={{ width: fieldWidth }}>
+          <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#111827', margin: '0 0 16px 0' }}>
+            {field.content || 'Main Heading'}
+          </h1>
+        </div>
+      );
+    }
+    if (field.type === 'heading2') {
+      return (
+        <div style={{ width: fieldWidth }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#374151', margin: '0 0 12px 0' }}>
+            {field.content || 'Sub Heading'}
+          </h2>
+        </div>
+      );
+    }
+    if (field.type === 'paragraph') {
+      return (
+        <div style={{ width: fieldWidth }}>
+          <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 12px 0', lineHeight: '1.6' }}>
+            {field.content || 'Paragraph text...'}
+          </p>
+        </div>
+      );
+    }
+    if (field.type === 'divider') {
+      return (
+        <div style={{ width: '100%' }}>
+          <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', margin: '20px 0' }} />
+        </div>
+      );
+    }
+
+    // Regular form fields
+    return (
+      <div style={{ width: fieldWidth }}>
+        <label style={{
+          display: 'block',
+          fontSize: '14px',
+          fontWeight: '500',
+          color: '#374151',
+          marginBottom: '6px'
+        }}>
+          {field.label}
+          {field.required && <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>}
+        </label>
+        {field.type === 'select' || field.type === 'multiselect' ? (
+          <select style={{
+            width: '100%',
+            padding: '8px 12px',
+            border: '1px solid #d1d5db',
+            borderRadius: '6px',
+            fontSize: '14px',
+            background: 'white'
+          }}>
+            <option>{field.placeholder || 'Select an option'}</option>
+            {field.options?.map((opt, i) => <option key={i}>{opt}</option>)}
+          </select>
+        ) : field.type === 'textarea' ? (
+          <textarea
+            placeholder={field.placeholder}
+            rows={3}
+            style={{
+              width: '100%',
+              padding: '8px 12px',
+              border: '1px solid #d1d5db',
+              borderRadius: '6px',
+              fontSize: '14px',
+              resize: 'vertical'
+            }}
+          />
+        ) : field.type === 'checkbox' ? (
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input type="checkbox" style={{ width: '16px', height: '16px' }} />
+            <span style={{ fontSize: '14px', color: '#374151' }}>
+              {field.placeholder || 'Check this box'}
+            </span>
+          </label>
+        ) : field.type === 'radio' ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {field.options?.map((opt, i) => (
+              <label key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input type="radio" name={`field_${field.id}`} />
+                <span style={{ fontSize: '14px', color: '#374151' }}>{opt}</span>
+              </label>
+            ))}
+          </div>
+        ) : (
+          <input
+            type={field.type}
+            placeholder={field.placeholder}
+            style={{
+              width: '100%',
+              padding: '8px 12px',
+              border: '1px solid #d1d5db',
+              borderRadius: '6px',
+              fontSize: '14px'
+            }}
+          />
+        )}
+      </div>
+    );
+  };
 
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 200px)', gap: '24px' }}>
@@ -557,10 +710,27 @@ const ModernFormBuilder = ({ onFieldsChange, initialFields = [] }) => {
               Form Builder
             </h2>
             <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#6b7280' }}>
-              {fields.length} field{fields.length !== 1 ? 's' : ''} • Drag to reorder
+              {fields.length} field{fields.length !== 1 ? 's' : ''} • Drag to reorder • Multi-column support
             </p>
           </div>
-          {fields.length > 0 && (
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button
+              onClick={() => setPreviewMode(previewMode === 'edit' ? 'preview' : 'edit')}
+              style={{
+                padding: '6px 12px',
+                background: previewMode === 'preview' ? '#3b82f6' : '#ffffff',
+                color: previewMode === 'preview' ? '#ffffff' : '#3b82f6',
+                border: '1px solid #3b82f6',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              {previewMode === 'edit' ? 'Preview Layout' : 'Edit Mode'}
+            </button>
+            {fields.length > 0 && (
             <button
               onClick={clearAll}
               style={{
@@ -586,6 +756,7 @@ const ModernFormBuilder = ({ onFieldsChange, initialFields = [] }) => {
               Clear All Fields
             </button>
           )}
+          </div>
         </div>
 
         <div style={{ 
@@ -632,6 +803,38 @@ const ModernFormBuilder = ({ onFieldsChange, initialFields = [] }) => {
             </DndContext>
           )}
         </div>
+        {previewMode === 'preview' && fields.length > 0 && (
+          <div style={{
+            padding: '24px',
+            background: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e5e7eb',
+            marginTop: '16px'
+          }}>
+            <h3 style={{ 
+              margin: '0 0 20px', 
+              fontSize: '16px', 
+              fontWeight: '600', 
+              color: '#111827',
+              borderBottom: '2px solid #e5e7eb',
+              paddingBottom: '12px'
+            }}>
+              Form Preview - Multi-Column Layout
+            </h3>
+            <div>
+              {getFieldRows().map((row, rowIndex) => (
+                <div key={rowIndex} style={{ 
+                  display: 'flex', 
+                  gap: '16px', 
+                  marginBottom: '20px',
+                  flexWrap: 'wrap'
+                }}>
+                  {row.map(field => renderFieldInPreview(field))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

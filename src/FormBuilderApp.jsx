@@ -98,6 +98,41 @@ const FormBuilderApp = () => {
     setFormData(prev => ({ ...prev, [fieldId]: value }));
   };
 
+  // Group fields into rows based on their widths
+  const getFieldRows = () => {
+    const rows = [];
+    let currentRow = [];
+    let currentRowWidth = 0;
+
+    formFields.forEach(field => {
+      const fieldWidth = field.width || 'full';
+      const widthMap = {
+        'full': 1,
+        'half': 0.5,
+        'third': 0.333,
+        'two-thirds': 0.666
+      };
+      const width = widthMap[fieldWidth];
+
+      if (currentRowWidth + width > 1.01 || fieldWidth === 'full') {
+        if (currentRow.length > 0) {
+          rows.push(currentRow);
+        }
+        currentRow = [field];
+        currentRowWidth = width;
+      } else {
+        currentRow.push(field);
+        currentRowWidth += width;
+      }
+    });
+
+    if (currentRow.length > 0) {
+      rows.push(currentRow);
+    }
+
+    return rows;
+  };
+
   const renderFormField = (field) => {
     const value = formData[field.id];
     const error = field.required && !value;
@@ -531,22 +566,77 @@ const FormBuilderApp = () => {
                       borderRadius: '8px',
                       border: '1px solid #e5e7eb'
                     }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing[6] }}>
-                        {formFields.map(field => (
-                          <div key={field.id}>
-                            <label style={{
-                              display: 'block',
-                              fontSize: theme.typography.fontSize.sm,
-                              fontWeight: theme.typography.fontWeight.medium,
-                              color: theme.colors.secondary[700],
-                              marginBottom: theme.spacing[2]
-                            }}>
-                              {field.label}
-                              {field.required && (
-                                <span style={{ color: theme.colors.error[500], marginLeft: theme.spacing[1] }}>*</span>
-                              )}
-                            </label>
-                            {renderFormField(field)}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing[4] }}>
+                        {getFieldRows().map((row, rowIndex) => (
+                          <div key={rowIndex} style={{ 
+                            display: 'flex', 
+                            gap: theme.spacing[4],
+                            flexWrap: 'wrap'
+                          }}>
+                            {row.map(field => {
+                              const widthMap = {
+                                'full': '100%',
+                                'half': 'calc(50% - 8px)',
+                                'third': 'calc(33.333% - 10px)',
+                                'two-thirds': 'calc(66.666% - 8px)'
+                              };
+                              const fieldWidth = widthMap[field.width || 'full'];
+                              
+                              // Handle layout fields
+                              if (field.type === 'heading1') {
+                                return (
+                                  <div key={field.id} style={{ width: '100%' }}>
+                                    <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#111827', margin: '0 0 16px 0' }}>
+                                      {field.content || 'Main Heading'}
+                                    </h1>
+                                  </div>
+                                );
+                              }
+                              if (field.type === 'heading2') {
+                                return (
+                                  <div key={field.id} style={{ width: '100%' }}>
+                                    <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#374151', margin: '0 0 12px 0' }}>
+                                      {field.content || 'Sub Heading'}
+                                    </h2>
+                                  </div>
+                                );
+                              }
+                              if (field.type === 'paragraph') {
+                                return (
+                                  <div key={field.id} style={{ width: '100%' }}>
+                                    <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 12px 0', lineHeight: '1.6' }}>
+                                      {field.content || 'Paragraph text...'}
+                                    </p>
+                                  </div>
+                                );
+                              }
+                              if (field.type === 'divider') {
+                                return (
+                                  <div key={field.id} style={{ width: '100%' }}>
+                                    <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', margin: '20px 0' }} />
+                                  </div>
+                                );
+                              }
+                              
+                              // Regular form fields
+                              return (
+                                <div key={field.id} style={{ width: fieldWidth }}>
+                                  <label style={{
+                                    display: 'block',
+                                    fontSize: theme.typography.fontSize.sm,
+                                    fontWeight: theme.typography.fontWeight.medium,
+                                    color: theme.colors.secondary[700],
+                                    marginBottom: theme.spacing[2]
+                                  }}>
+                                    {field.label}
+                                    {field.required && (
+                                      <span style={{ color: theme.colors.error[500], marginLeft: theme.spacing[1] }}>*</span>
+                                    )}
+                                  </label>
+                                  {renderFormField(field)}
+                                </div>
+                              );
+                            })}
                           </div>
                         ))}
                       </div>

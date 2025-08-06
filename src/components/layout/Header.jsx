@@ -24,7 +24,7 @@ const Header = ({
       zIndex: 100,
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
     }}>
-      <Layout.Container>
+      <div style={{ padding: `0 ${theme.spacing[6]}`, maxWidth: '100%' }}>
         <Layout.Flex justify="space-between" align="center">
           <Layout.Flex align="center" gap={4}>
             {showHomeButton && (
@@ -80,7 +80,7 @@ const Header = ({
             )}
           </Layout.Flex>
         </Layout.Flex>
-      </Layout.Container>
+      </div>
     </div>
   );
 };
