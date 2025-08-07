@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Save, Eye, Settings, Share2, BarChart3, ChevronDown } from 'lucide-react';
+import { Download, Save, Eye, Settings, Share2, BarChart3, ChevronDown, FolderOpen, Copy, Trash2 } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
 import UserDashboard from './components/UserDashboard';
@@ -78,6 +78,109 @@ const FormBuilderApp = () => {
   const [isPublishing, setIsPublishing] = useState(false);
   const [statsRefreshTrigger, setStatsRefreshTrigger] = useState(0);
   const [showPdfOptions, setShowPdfOptions] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [showLoadDialog, setShowLoadDialog] = useState(false);
+  const [savedTemplates, setSavedTemplates] = useState([]);
+  const [templateName, setTemplateName] = useState('');
+  
+  // Load saved templates on mount
+  useEffect(() => {
+    const loadTemplates = async () => {
+      if (currentUser) {
+        const templates = await getUserFormTemplates(currentUser.uid);
+        setSavedTemplates(templates);
+      }
+    };
+    loadTemplates();
+  }, [currentUser]);
+
+  // Save current form as template
+  const saveTemplate = async () => {
+    if (!currentUser) {
+      alert('Please sign in to save templates');
+      return;
+    }
+    
+    if (!templateName.trim()) {
+      alert('Please enter a template name');
+      return;
+    }
+    
+    const template = {
+      name: templateName,
+      fields: formFields,
+      rows: formRowsStructure,
+      settings: formSettings,
+      createdAt: new Date().toISOString()
+    };
+    
+    const success = await saveFormTemplate(currentUser.uid, template);
+    
+    if (success) {
+      const templates = await getUserFormTemplates(currentUser.uid);
+      setSavedTemplates(templates);
+      setShowSaveDialog(false);
+      setTemplateName('');
+      alert('✅ Template saved successfully!');
+    } else {
+      alert('❌ Failed to save template. Please try again.');
+    }
+  };
+
+  // Load a saved template
+  const loadTemplate = (template) => {
+    setFormFields(template.fields || []);
+    setFormRowsStructure(template.rows || []);
+    setFormSettings(template.settings || formSettings);
+    setFormData({});
+    setShowLoadDialog(false);
+    alert(`✅ Loaded template: ${template.name}`);
+  };
+
+  // Delete a saved template
+  const deleteTemplate = async (templateId) => {
+    if (!currentUser) return;
+    
+    if (confirm('Are you sure you want to delete this template?')) {
+      const success = await deleteFormTemplate(currentUser.uid, templateId);
+      
+      if (success) {
+        const templates = await getUserFormTemplates(currentUser.uid);
+        setSavedTemplates(templates);
+      } else {
+        alert('❌ Failed to delete template. Please try again.');
+      }
+    }
+  };
+
+  // Duplicate a template
+  const duplicateTemplate = async (template) => {
+    if (!currentUser) return;
+    
+    const duplicatedTemplate = {
+      name: `${template.name} (Copy)`,
+      fields: template.fields.map(field => ({
+        ...field,
+        id: Date.now() + Math.random()
+      })),
+      rows: template.rows,
+      settings: template.settings,
+      createdAt: new Date().toISOString()
+    };
+    
+    const success = await saveFormTemplate(currentUser.uid, duplicatedTemplate);
+    
+    if (success) {
+      const templates = await getUserFormTemplates(currentUser.uid);
+      setSavedTemplates(templates);
+      alert(`✅ Duplicated template: ${duplicatedTemplate.name}`);
+      
+      // Load the duplicated template
+      loadTemplate(duplicatedTemplate);
+    } else {
+      alert('❌ Failed to duplicate template. Please try again.');
+    }
+  };
   
   // Close PDF options dropdown when clicking outside
   useEffect(() => {
@@ -744,6 +847,27 @@ const FormBuilderApp = () => {
                 >
                   Share Form
                 </Button>
+                <Button
+                  variant="success"
+                  size="md"
+                  leftIcon={<Save size={16} />}
+                  onClick={() => setShowSaveDialog(true)}
+                  disabled={formFields.length === 0}
+                  title="Save current form as template"
+                >
+                  Save Form
+                </Button>
+                
+                <Button
+                  variant="info"
+                  size="md"
+                  leftIcon={<FolderOpen size={16} />}
+                  onClick={() => setShowLoadDialog(true)}
+                  title="Load or duplicate a saved form"
+                >
+                  Load Form
+                </Button>
+                
                 <div className="pdf-dropdown-container" style={{ position: 'relative' }}>
                   <Button
                     variant="primary"
@@ -1192,6 +1316,139 @@ const FormBuilderApp = () => {
 
       {showSubmissions && (
         <SubmissionsDashboard onClose={() => setShowSubmissions(false)} />
+      )}
+
+      {/* Save Form Dialog */}
+      {showSaveDialog && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }} onClick={() => setShowSaveDialog(false)}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '32px',
+            maxWidth: '500px',
+            width: '90%'
+          }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ marginBottom: '24px', color: '#1f2937' }}>Save Form Template</h2>
+            <input
+              type="text"
+              value={templateName}
+              onChange={(e) => setTemplateName(e.target.value)}
+              placeholder="Enter template name..."
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '2px solid #e5e7eb',
+                borderRadius: '8px',
+                fontSize: '16px',
+                marginBottom: '24px'
+              }}
+              autoFocus
+            />
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <Button variant="secondary" onClick={() => setShowSaveDialog(false)}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={saveTemplate}>
+                Save Template
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Load Form Dialog */}
+      {showLoadDialog && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }} onClick={() => setShowLoadDialog(false)}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '32px',
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '70vh',
+            overflow: 'auto'
+          }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ marginBottom: '24px', color: '#1f2937' }}>Load Form Template</h2>
+            {savedTemplates.length === 0 ? (
+              <p style={{ color: '#6b7280', textAlign: 'center', margin: '32px 0' }}>
+                No saved templates yet. Create and save a form template first.
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {savedTemplates.map(template => (
+                  <div key={template.id} style={{
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <div>
+                      <h3 style={{ margin: 0, color: '#1f2937' }}>{template.name}</h3>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#6b7280' }}>
+                        Created: {new Date(template.createdAt).toLocaleDateString()} • 
+                        {template.fields?.length || 0} fields
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <Button 
+                        variant="primary" 
+                        size="sm"
+                        onClick={() => loadTemplate(template)}
+                      >
+                        Load
+                      </Button>
+                      <Button 
+                        variant="success" 
+                        size="sm"
+                        leftIcon={<Copy size={14} />}
+                        onClick={() => duplicateTemplate(template)}
+                      >
+                        Duplicate
+                      </Button>
+                      <Button 
+                        variant="danger" 
+                        size="sm"
+                        leftIcon={<Trash2 size={14} />}
+                        onClick={() => deleteTemplate(template.id)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+              <Button variant="secondary" onClick={() => setShowLoadDialog(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </Layout>
   );
