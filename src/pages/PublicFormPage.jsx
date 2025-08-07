@@ -363,29 +363,67 @@ const PublicFormPage = () => {
             margin: '40px auto',
             boxShadow: '0 20px 50px rgba(0,0,0,0.1)'
           }}>
+            {/* Form Header with PDF Settings */}
             <div style={{ 
               marginBottom: theme.spacing[8],
               paddingBottom: theme.spacing[6],
               borderBottom: `2px solid ${theme.colors.secondary[200]}`
             }}>
-              <h1 style={{ 
-                fontSize: '36px', 
-                fontWeight: theme.typography.fontWeight.bold, 
-                color: theme.colors.secondary[900], 
-                marginBottom: theme.spacing[3],
-                textAlign: 'center'
-              }}>
-                {form.title}
-              </h1>
-              {form.description && (
-                <p style={{ 
-                  fontSize: theme.typography.fontSize.lg, 
-                  color: theme.colors.secondary[600], 
-                  textAlign: 'center',
-                  maxWidth: '600px',
-                  margin: '0 auto'
+              {/* Logo if present */}
+              {form.settings?.logo && (
+                <div style={{ 
+                  textAlign: form.settings.logoPosition || 'left',
+                  marginBottom: theme.spacing[4]
                 }}>
-                  {form.description}
+                  <img 
+                    src={form.settings.logo} 
+                    alt="Logo" 
+                    style={{ 
+                      height: '60px',
+                      display: form.settings.logoPosition === 'center' ? 'inline-block' : 'block',
+                      marginLeft: form.settings.logoPosition === 'right' ? 'auto' : form.settings.logoPosition === 'center' ? 'auto' : '0',
+                      marginRight: form.settings.logoPosition === 'center' ? 'auto' : '0'
+                    }} 
+                  />
+                </div>
+              )}
+              
+              {/* Main Header */}
+              {(form.settings?.pdfHeader || form.title) && (
+                <h1 style={{ 
+                  fontSize: `${parseInt(form.settings?.headerFontSize) * 1.8 || 36}px`, 
+                  fontWeight: theme.typography.fontWeight.bold, 
+                  color: form.settings?.headerColor || theme.colors.secondary[900], 
+                  marginBottom: theme.spacing[3],
+                  textAlign: form.settings?.headerAlignment || 'center'
+                }}>
+                  {form.settings?.pdfHeader || form.title}
+                </h1>
+              )}
+              
+              {/* Subheader */}
+              {(form.settings?.pdfSubheader || form.description) && (
+                <p style={{ 
+                  fontSize: `${parseInt(form.settings?.subheaderFontSize) * 1.3 || 18}px`, 
+                  color: theme.colors.secondary[600], 
+                  textAlign: form.settings?.headerAlignment || 'center',
+                  maxWidth: '600px',
+                  margin: form.settings?.headerAlignment === 'center' ? '0 auto' : '0',
+                  marginBottom: theme.spacing[2]
+                }}>
+                  {form.settings?.pdfSubheader || form.description}
+                </p>
+              )}
+              
+              {/* Date if enabled */}
+              {form.settings?.showDate !== false && (
+                <p style={{ 
+                  fontSize: theme.typography.fontSize.sm, 
+                  color: theme.colors.secondary[500], 
+                  textAlign: form.settings?.headerAlignment || 'center',
+                  marginTop: theme.spacing[2]
+                }}>
+                  Date: {form.settings?.pdfDate ? new Date(form.settings.pdfDate).toLocaleDateString() : new Date().toLocaleDateString()}
                 </p>
               )}
             </div>

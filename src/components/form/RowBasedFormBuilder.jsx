@@ -54,6 +54,7 @@ import {
   FileSignature
 } from 'lucide-react';
 import ConditionalLogic from './ConditionalLogic';
+import PDFHeaderSettings from './PDFHeaderSettings';
 import { theme } from '../../styles/theme';
 
 // Draggable field type button
@@ -1047,6 +1048,12 @@ const RowBasedFormBuilder = ({ onFieldsChange, initialFields = [], initialRows =
             overflow: 'auto',
             padding: '24px'
           }}>
+            {/* PDF Header Settings as first section */}
+            <PDFHeaderSettings 
+              settings={formSettings} 
+              onChange={onSettingsChange}
+            />
+            
             {rows.length === 0 ? (
               <div style={{
                 textAlign: 'center',

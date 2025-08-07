@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Save, Eye, Settings, Share2, BarChart3, ChevronDown, FolderOpen, Copy, Trash2 } from 'lucide-react';
+import { Download, Save, Eye, Settings, Share2, BarChart3, ChevronDown, FolderOpen, Copy, Trash2, MoreVertical, FileText } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
 import UserDashboard from './components/UserDashboard';
@@ -79,6 +79,7 @@ const FormBuilderApp = () => {
   const [isPublishing, setIsPublishing] = useState(false);
   const [statsRefreshTrigger, setStatsRefreshTrigger] = useState(0);
   const [showPdfOptions, setShowPdfOptions] = useState(false);
+  const [showFormOptions, setShowFormOptions] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showLoadDialog, setShowLoadDialog] = useState(false);
   const [savedTemplates, setSavedTemplates] = useState([]);
@@ -210,19 +211,22 @@ const FormBuilderApp = () => {
     }
   };
   
-  // Close PDF options dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
+      if (!e.target.closest('.form-options-container')) {
+        setShowFormOptions(false);
+      }
       if (!e.target.closest('.pdf-dropdown-container')) {
         setShowPdfOptions(false);
       }
     };
     
-    if (showPdfOptions) {
+    if (showFormOptions || showPdfOptions) {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
     }
-  }, [showPdfOptions]);
+  }, [showFormOptions, showPdfOptions]);
   const [templateKey, setTemplateKey] = useState(Date.now());
   const [formSettings, setFormSettings] = useState(() => {
     if (!currentUser) return { pdfHeader: '', pdfSubheader: '', pdfDate: new Date().toISOString().split('T')[0] };
@@ -486,27 +490,71 @@ const FormBuilderApp = () => {
       let pageNumber = 1;
       
       // Add custom header if set
-      if (formSettings.pdfHeader) {
-        pdf.setFontSize(20);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(51, 51, 51);
-        pdf.text(formSettings.pdfHeader, pageWidth / 2, currentY, { align: 'center' });
-        currentY += 10;
-        
-        if (formSettings.pdfSubheader) {
-          pdf.setFontSize(14);
-          pdf.setFont('helvetica', 'normal');
-          pdf.setTextColor(102, 102, 102);
-          pdf.text(formSettings.pdfSubheader, pageWidth / 2, currentY, { align: 'center' });
-          currentY += 8;
+      const showHeader = formSettings.showHeader !== false; // Default to true
+      if (showHeader && (formSettings.pdfHeader || formSettings.logo)) {
+        // Add logo if present
+        if (formSettings.logo) {
+          const logoSize = 30;
+          let logoX = margin;
+          if (formSettings.logoPosition === 'center') {
+            logoX = (pageWidth - logoSize) / 2;
+          } else if (formSettings.logoPosition === 'right') {
+            logoX = pageWidth - margin - logoSize;
+          }
+          try {
+            pdf.addImage(formSettings.logo, 'PNG', logoX, currentY - 5, logoSize, logoSize);
+          } catch (e) {
+            console.error('Error adding logo to PDF:', e);
+          }
+          if (formSettings.logoPosition === 'center') {
+            currentY += logoSize + 5;
+          }
         }
         
-        // Add date in the header
-        pdf.setFontSize(11);
-        pdf.setTextColor(128, 128, 128);
-        const dateText = formSettings.pdfDate ? `Date: ${new Date(formSettings.pdfDate).toLocaleDateString()}` : `Date: ${new Date().toLocaleDateString()}`;
-        pdf.text(dateText, pageWidth / 2, currentY, { align: 'center' });
-        currentY += 6;
+        // Determine alignment for text
+        const alignment = formSettings.headerAlignment || 'center';
+        let textX = pageWidth / 2;
+        let textAlign = 'center';
+        if (alignment === 'left') {
+          textX = formSettings.logo && formSettings.logoPosition === 'left' ? margin + 40 : margin;
+          textAlign = 'left';
+        } else if (alignment === 'right') {
+          textX = formSettings.logo && formSettings.logoPosition === 'right' ? pageWidth - margin - 40 : pageWidth - margin;
+          textAlign = 'right';
+        }
+        
+        // Add header text
+        if (formSettings.pdfHeader) {
+          const headerFontSize = parseInt(formSettings.headerFontSize) || 20;
+          pdf.setFontSize(headerFontSize);
+          pdf.setFont('helvetica', 'bold');
+          const headerColor = formSettings.headerColor || '#333333';
+          const r = parseInt(headerColor.slice(1,3), 16);
+          const g = parseInt(headerColor.slice(3,5), 16);
+          const b = parseInt(headerColor.slice(5,7), 16);
+          pdf.setTextColor(r, g, b);
+          pdf.text(formSettings.pdfHeader, textX, currentY, { align: textAlign });
+          currentY += headerFontSize / 2 + 4;
+        }
+        
+        // Add subheader
+        if (formSettings.pdfSubheader) {
+          const subheaderFontSize = parseInt(formSettings.subheaderFontSize) || 14;
+          pdf.setFontSize(subheaderFontSize);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(102, 102, 102);
+          pdf.text(formSettings.pdfSubheader, textX, currentY, { align: textAlign });
+          currentY += subheaderFontSize / 2 + 3;
+        }
+        
+        // Add date if enabled
+        if (formSettings.showDate !== false) {
+          pdf.setFontSize(11);
+          pdf.setTextColor(128, 128, 128);
+          const dateText = formSettings.pdfDate ? `Date: ${new Date(formSettings.pdfDate).toLocaleDateString()}` : `Date: ${new Date().toLocaleDateString()}`;
+          pdf.text(dateText, textX, currentY, { align: textAlign });
+          currentY += 6;
+        }
         
         currentY += 3;
         pdf.setDrawColor(200, 200, 200);
@@ -639,19 +687,29 @@ const FormBuilderApp = () => {
         }
       });
       
-      // Add page number to all pages
+      // Add page number and footer to all pages
       const totalPages = pdf.internal.getNumberOfPages();
       for (let i = 1; i <= totalPages; i++) {
         pdf.setPage(i);
-        pdf.setFontSize(8);
-        pdf.setTextColor(180, 180, 180);
         const footerY = pageHeight - 15;
         
-        // Page numbers
-        pdf.text(`Page ${i} of ${totalPages}`, pageWidth / 2, footerY, { align: 'center' });
+        // Page numbers (if enabled)
+        if (formSettings.showPageNumbers !== false) {
+          pdf.setFontSize(8);
+          pdf.setTextColor(180, 180, 180);
+          pdf.text(`Page ${i} of ${totalPages}`, pageWidth / 2, footerY, { align: 'center' });
+        }
         
-        // Add small header name in footer on pages after the first
-        if (i > 1 && formSettings.pdfHeader) {
+        // Custom footer text (if enabled and provided)
+        if (formSettings.showFooter && formSettings.footerText) {
+          pdf.setFontSize(8);
+          pdf.setTextColor(128, 128, 128);
+          const footerTextY = formSettings.showPageNumbers !== false ? footerY - 5 : footerY;
+          pdf.text(formSettings.footerText, pageWidth / 2, footerTextY, { align: 'center' });
+        }
+        
+        // Add small header name in footer on pages after the first (if no custom footer)
+        if (i > 1 && formSettings.pdfHeader && !formSettings.showFooter) {
           pdf.setFontSize(8);
           pdf.setTextColor(180, 180, 180);
           pdf.text(formSettings.pdfHeader, pageWidth - margin, footerY, { align: 'right' });
@@ -792,7 +850,8 @@ const FormBuilderApp = () => {
         title: formInfo.title,
         description: formInfo.description,
         fields: formFields,
-        rowsStructure: formRowsStructure
+        rowsStructure: formRowsStructure,
+        settings: formSettings // Include PDF header settings
       });
 
       if (result.success) {
@@ -838,69 +897,261 @@ const FormBuilderApp = () => {
           {/* Form Builder with integrated preview toggle */}
           <div style={{ marginBottom: theme.spacing[6] }}>
             <Layout.Flex justify="space-between" align="center" style={{ marginBottom: theme.spacing[6] }}>
-              <Layout.Flex gap={2} align="center">
-                <Button
-                  variant={currentView === 'builder' ? 'primary' : 'secondary'}
-                  size="md"
-                  onClick={() => setCurrentView('builder')}
-                >
-                  Builder
-                </Button>
-                <Button
-                  variant={currentView === 'preview' ? 'primary' : 'secondary'}
-                  size="md"
-                  leftIcon={<Eye size={16} />}
-                  onClick={() => setCurrentView('preview')}
-                >
-                  Preview & Test
-                </Button>
+              <Layout.Flex gap={3} align="center">
+                {/* Clean Toggle Switch for Builder/Preview */}
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: theme.spacing[3],
+                  padding: `${theme.spacing[1]} ${theme.spacing[2]}`,
+                  background: theme.colors.secondary[50],
+                  borderRadius: theme.borderRadius.lg,
+                  border: `1px solid ${theme.colors.secondary[200]}`
+                }}>
+                  <span style={{ 
+                    fontSize: theme.typography.fontSize.sm, 
+                    color: currentView === 'builder' ? theme.colors.secondary[900] : theme.colors.secondary[500],
+                    fontWeight: currentView === 'builder' ? theme.typography.fontWeight.medium : theme.typography.fontWeight.normal
+                  }}>
+                    Builder
+                  </span>
+                  <label style={{ 
+                    position: 'relative', 
+                    display: 'inline-block', 
+                    width: '44px', 
+                    height: '24px',
+                    cursor: 'pointer'
+                  }}>
+                    <input 
+                      type="checkbox" 
+                      checked={currentView === 'preview'}
+                      onChange={() => setCurrentView(currentView === 'builder' ? 'preview' : 'builder')}
+                      style={{ opacity: 0, width: 0, height: 0 }}
+                    />
+                    <span style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: currentView === 'preview' ? theme.colors.primary[500] : theme.colors.secondary[300],
+                      borderRadius: '24px',
+                      transition: 'background-color 0.2s',
+                    }}>
+                      <span style={{
+                        position: 'absolute',
+                        left: currentView === 'preview' ? '22px' : '2px',
+                        top: '2px',
+                        height: '20px',
+                        width: '20px',
+                        backgroundColor: 'white',
+                        borderRadius: '50%',
+                        transition: 'left 0.2s',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                      }} />
+                    </span>
+                  </label>
+                  <span style={{ 
+                    fontSize: theme.typography.fontSize.sm, 
+                    color: currentView === 'preview' ? theme.colors.secondary[900] : theme.colors.secondary[500],
+                    fontWeight: currentView === 'preview' ? theme.typography.fontWeight.medium : theme.typography.fontWeight.normal
+                  }}>
+                    Preview
+                  </span>
+                </div>
               </Layout.Flex>
 
-              
-              <Layout.Flex gap={2} align="center">
-                <Button
-                  variant="secondary"
-                  size="md"
-                  leftIcon={<Share2 size={16} />}
-                  onClick={() => setShowShareModal(true)}
+              {/* Clean Form Options Dropdown */}
+              <div className="form-options-container" style={{ position: 'relative' }}>
+                <button
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: theme.spacing[2],
+                    padding: `${theme.spacing[2]} ${theme.spacing[3]}`,
+                    background: 'white',
+                    border: `1px solid ${theme.colors.secondary[300]}`,
+                    borderRadius: theme.borderRadius.md,
+                    fontSize: theme.typography.fontSize.sm,
+                    color: theme.colors.secondary[700],
+                    cursor: formFields.length === 0 ? 'not-allowed' : 'pointer',
+                    opacity: formFields.length === 0 ? 0.5 : 1,
+                    transition: 'all 0.2s',
+                    fontWeight: theme.typography.fontWeight.medium
+                  }}
+                  onClick={() => formFields.length > 0 && setShowFormOptions(!showFormOptions)}
+                  onMouseEnter={(e) => {
+                    if (formFields.length > 0) {
+                      e.currentTarget.style.borderColor = theme.colors.secondary[400];
+                      e.currentTarget.style.background = theme.colors.secondary[50];
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = theme.colors.secondary[300];
+                    e.currentTarget.style.background = 'white';
+                  }}
                   disabled={formFields.length === 0}
                 >
-                  Share Form
-                </Button>
-                <Button
-                  variant="success"
-                  size="md"
-                  leftIcon={<Save size={16} />}
-                  onClick={() => setShowSaveDialog(true)}
-                  disabled={formFields.length === 0}
-                  title="Save current form as template"
-                >
-                  Save Form
-                </Button>
+                  <FileText size={16} />
+                  Form Options
+                  <ChevronDown size={14} style={{ 
+                    transform: showFormOptions ? 'rotate(180deg)' : 'rotate(0)',
+                    transition: 'transform 0.2s'
+                  }} />
+                </button>
                 
-                <Button
-                  variant="info"
-                  size="md"
-                  leftIcon={<FolderOpen size={16} />}
-                  onClick={() => setShowLoadDialog(true)}
-                  title="Load or duplicate a saved form"
-                >
-                  Load Form
-                </Button>
-                
-                <div className="pdf-dropdown-container" style={{ position: 'relative' }}>
-                  <Button
-                    variant="primary"
-                    size="md"
-                    leftIcon={<Download size={16} />}
-                    rightIcon={<ChevronDown size={16} />}
-                    onClick={() => setShowPdfOptions(!showPdfOptions)}
-                    disabled={isGeneratingPDF || formFields.length === 0}
-                    loading={isGeneratingPDF}
-                  >
-                    {isGeneratingPDF ? 'Generating...' : 'Generate PDF'}
-                  </Button>
-                  {showPdfOptions && (
+                {/* Dropdown Menu */}
+                {showFormOptions && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: '4px',
+                    background: 'white',
+                    border: `1px solid ${theme.colors.secondary[200]}`,
+                    borderRadius: theme.borderRadius.md,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    zIndex: 10,
+                    minWidth: '200px',
+                    overflow: 'hidden'
+                  }}>
+                    <button
+                      onClick={() => {
+                        setShowFormOptions(false);
+                        setShowShareModal(true);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 16px',
+                        background: 'transparent',
+                        border: 'none',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        color: theme.colors.secondary[700],
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'background 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = theme.colors.secondary[50]}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <Share2 size={16} />
+                      Share Form
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        setShowFormOptions(false);
+                        setShowSaveDialog(true);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 16px',
+                        background: 'transparent',
+                        border: 'none',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        color: theme.colors.secondary[700],
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'background 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = theme.colors.secondary[50]}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <Save size={16} />
+                      Save Form
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        setShowFormOptions(false);
+                        setShowLoadDialog(true);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 16px',
+                        background: 'transparent',
+                        border: 'none',
+                        borderBottom: `1px solid ${theme.colors.secondary[100]}`,
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        color: theme.colors.secondary[700],
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'background 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = theme.colors.secondary[50]}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <FolderOpen size={16} />
+                      Load Form
+                    </button>
+                    
+                    {/* Divider */}
+                    <div style={{ borderTop: `1px solid ${theme.colors.secondary[100]}`, margin: 0 }} />
+                    
+                    <button
+                      onClick={() => {
+                        setShowFormOptions(false);
+                        generatePDF(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 16px',
+                        background: 'transparent',
+                        border: 'none',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        color: theme.colors.secondary[700],
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'background 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = theme.colors.secondary[50]}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                      disabled={isGeneratingPDF}
+                    >
+                      <Download size={16} />
+                      {isGeneratingPDF ? 'Generating...' : 'Generate Filled PDF'}
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        setShowFormOptions(false);
+                        generatePDF(true);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 16px',
+                        background: 'transparent',
+                        border: 'none',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        color: theme.colors.secondary[700],
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'background 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = theme.colors.secondary[50]}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                      disabled={isGeneratingPDF}
+                    >
+                      <FileText size={16} />
+                      Generate Blank Template
+                    </button>
+                  </div>
+                )}
                     <div style={{
                       position: 'absolute',
                       top: '100%',
@@ -966,8 +1217,7 @@ const FormBuilderApp = () => {
                       </button>
                     </div>
                   )}
-                </div>
-              </Layout.Flex>
+              </div>
             </Layout.Flex>
           </div>
 

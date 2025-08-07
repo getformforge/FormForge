@@ -267,7 +267,22 @@ export const publishForm = async (userId, formData) => {
         allowMultipleSubmissions: true,
         showProgressBar: true,
         customTheme: formData.settings?.customTheme || 'default',
-        theme: formData.theme || 'modern' // Store theme in settings too
+        theme: formData.theme || 'modern', // Store theme in settings too
+        // PDF Header settings
+        pdfHeader: formData.settings?.pdfHeader || '',
+        pdfSubheader: formData.settings?.pdfSubheader || '',
+        pdfDate: formData.settings?.pdfDate || new Date().toISOString().split('T')[0],
+        showHeader: formData.settings?.showHeader !== false,
+        showDate: formData.settings?.showDate !== false,
+        showPageNumbers: formData.settings?.showPageNumbers !== false,
+        headerAlignment: formData.settings?.headerAlignment || 'center',
+        headerFontSize: formData.settings?.headerFontSize || '20',
+        subheaderFontSize: formData.settings?.subheaderFontSize || '14',
+        headerColor: formData.settings?.headerColor || '#333333',
+        logo: formData.settings?.logo || null,
+        logoPosition: formData.settings?.logoPosition || 'left',
+        footerText: formData.settings?.footerText || '',
+        showFooter: formData.settings?.showFooter || false
       }
     };
 
