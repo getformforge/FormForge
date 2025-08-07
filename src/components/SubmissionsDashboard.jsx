@@ -373,7 +373,7 @@ const generatePDFFromSubmission = (submission, form) => {
   
   // Add custom header if set
   const showHeader = formSettings.showHeader !== false;
-  if (showHeader && (formSettings.pdfHeader || formSettings.logo || form?.title)) {
+  if (showHeader && (formSettings.pdfHeader || formSettings.logo)) {
     // Add logo if present
     if (formSettings.logo) {
       const logoSize = 30;
@@ -405,8 +405,8 @@ const generatePDFFromSubmission = (submission, form) => {
       textAlign = 'right';
     }
     
-    // Add header text
-    const headerText = formSettings.pdfHeader || form?.title || 'Form Submission';
+    // Add header text - only use pdfHeader if it exists
+    const headerText = formSettings.pdfHeader || 'Form Submission';
     const headerFontSize = parseInt(formSettings.headerFontSize) || 20;
     pdf.setFontSize(headerFontSize);
     pdf.setFont('helvetica', 'bold');
@@ -445,17 +445,9 @@ const generatePDFFromSubmission = (submission, form) => {
   
   pdf.setTextColor(0, 0, 0);
   
-  // Submission info
+  // Remove submission info - go straight to form fields
   pdf.setFontSize(12);
   pdf.setFont('helvetica', 'normal');
-  const submissionDate = submission.submittedAt?.toDate ? 
-    submission.submittedAt.toDate() : new Date(submission.submittedAt);
-  pdf.text(`Submitted: ${submissionDate.toLocaleString()}`, margin, currentY);
-  currentY += 25;
-  
-  // Draw a line separator
-  pdf.setDrawColor(200, 200, 200);
-  pdf.line(margin, currentY - 10, pageWidth - margin, currentY - 10);
   
   // Form fields and responses - use row/column structure
   let rows = [];
@@ -527,8 +519,8 @@ const generatePDFFromSubmission = (submission, form) => {
         let value = submission.responses?.[field.id] || '(Not provided)';
         
         if (field.type === 'checkbox') {
-          // Use actual checkbox symbols
-          value = value ? '☑' : '☐';
+          // Use actual checkbox symbols - use Unicode entities for PDF compatibility
+          value = value ? '\u2611' : '\u2610';
           if (field.placeholder) {
             value = value + ' ' + field.placeholder;
           }
@@ -625,7 +617,7 @@ const SubmissionDetailModal = ({ submission, form, onClose }) => {
       border: `1px solid ${theme.colors.secondary[200]}`,
       padding: theme.spacing[8],
       width: '100%',
-      maxWidth: '600px',
+      maxWidth: '900px',
       maxHeight: '80vh',
       overflow: 'auto',
       position: 'relative'
@@ -647,7 +639,7 @@ const SubmissionDetailModal = ({ submission, form, onClose }) => {
             color: theme.colors.secondary[900],
             margin: 0
           }}>
-            {form?.title || 'Form Submission'}
+            {form?.settings?.pdfHeader || form?.title || 'Form Submission'}
           </h3>
           <button 
             onClick={onClose}
@@ -678,39 +670,110 @@ const SubmissionDetailModal = ({ submission, form, onClose }) => {
           </p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing[4] }}>
-          {form?.fields?.filter(field => 
-            evaluateFieldConditions(field, submission.responses || {}, form.fields)
-          ).map(field => {
-            const value = submission.responses?.[field.id];
-            return (
-              <div key={field.id}>
-                <label style={{
-                  display: 'block',
-                  fontSize: theme.typography.fontSize.sm,
-                  fontWeight: theme.typography.fontWeight.medium,
-                  color: theme.colors.secondary[700],
-                  marginBottom: theme.spacing[2]
+        <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing[6] }}>
+          {/* Use rowsStructure if available for proper multi-column layout */}
+          {form?.rowsStructure && form.rowsStructure.length > 0 ? (
+            form.rowsStructure.map((row, rowIndex) => {
+              // Apply conditional logic to filter visible fields
+              const visibleFields = (row.fields || []).filter(field => 
+                evaluateFieldConditions(field, submission.responses || {}, form.fields)
+              );
+              
+              if (visibleFields.length === 0) return null;
+              
+              return (
+                <div key={rowIndex} style={{ 
+                  display: 'grid',
+                  gridTemplateColumns: row.columns === 1 ? '1fr' : row.columns === 2 ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))',
+                  gap: theme.spacing[4]
                 }}>
-                  {field.label}
-                  {field.required && (
-                    <span style={{ color: theme.colors.error[500], marginLeft: theme.spacing[1] }}>*</span>
-                  )}
-                </label>
-                <div style={{
-                  padding: theme.spacing[3],
-                  background: theme.colors.secondary[50],
-                  border: `1px solid ${theme.colors.secondary[200]}`,
-                  borderRadius: theme.borderRadius.lg,
-                  minHeight: '44px',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}>
-                  {value || <span style={{ color: theme.colors.secondary[400] }}>No response</span>}
+                  {visibleFields.map(field => {
+                    const value = submission.responses?.[field.id];
+                    
+                    // Handle layout fields
+                    if (['heading1', 'heading2', 'paragraph', 'divider'].includes(field.type)) {
+                      return null; // Skip layout fields in submission view
+                    }
+                    
+                    // Regular form fields
+                    return (
+                      <div key={field.id}>
+                        <label style={{
+                          display: 'block',
+                          fontSize: theme.typography.fontSize.sm,
+                          fontWeight: theme.typography.fontWeight.medium,
+                          color: theme.colors.secondary[700],
+                          marginBottom: theme.spacing[2]
+                        }}>
+                          {field.label}
+                          {field.required && (
+                            <span style={{ color: theme.colors.error[500], marginLeft: theme.spacing[1] }}>*</span>
+                          )}
+                        </label>
+                        <div style={{
+                          padding: theme.spacing[3],
+                          background: theme.colors.secondary[50],
+                          border: `1px solid ${theme.colors.secondary[200]}`,
+                          borderRadius: theme.borderRadius.lg,
+                          minHeight: '44px',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}>
+                          {field.type === 'signature' && value && value.startsWith('data:image') ? (
+                            <img src={value} alt="Signature" style={{ maxHeight: '60px', maxWidth: '200px' }} />
+                          ) : field.type === 'checkbox' ? (
+                            <span>{value ? '☑ Yes' : '☐ No'}</span>
+                          ) : (
+                            value || <span style={{ color: theme.colors.secondary[400] }}>No response</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          ) : (
+            // Fallback to single column if no rowsStructure
+            form?.fields?.filter(field => 
+              evaluateFieldConditions(field, submission.responses || {}, form.fields)
+            ).map(field => {
+              const value = submission.responses?.[field.id];
+              return (
+                <div key={field.id}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: theme.typography.fontSize.sm,
+                    fontWeight: theme.typography.fontWeight.medium,
+                    color: theme.colors.secondary[700],
+                    marginBottom: theme.spacing[2]
+                  }}>
+                    {field.label}
+                    {field.required && (
+                      <span style={{ color: theme.colors.error[500], marginLeft: theme.spacing[1] }}>*</span>
+                    )}
+                  </label>
+                  <div style={{
+                    padding: theme.spacing[3],
+                    background: theme.colors.secondary[50],
+                    border: `1px solid ${theme.colors.secondary[200]}`,
+                    borderRadius: theme.borderRadius.lg,
+                    minHeight: '44px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    {field.type === 'signature' && value && value.startsWith('data:image') ? (
+                      <img src={value} alt="Signature" style={{ maxHeight: '60px', maxWidth: '200px' }} />
+                    ) : field.type === 'checkbox' ? (
+                      <span>{value ? '☑ Yes' : '☐ No'}</span>
+                    ) : (
+                      value || <span style={{ color: theme.colors.secondary[400] }}>No response</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
 
         <div style={{ 

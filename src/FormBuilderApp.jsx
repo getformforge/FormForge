@@ -1296,7 +1296,9 @@ const FormBuilderApp = () => {
                   {(() => {
                     // Calculate pages for PDF preview
                     const A4_HEIGHT = 842; // A4 height at 72 DPI in pixels
-                    const HEADER_HEIGHT = 120; // Approximate header height
+                    // Only count header height if we're actually showing a header
+                    const showHeader = formSettings.showHeader !== false && (formSettings.pdfHeader || formSettings.logo);
+                    const HEADER_HEIGHT = showHeader ? 120 : 0; // Approximate header height
                     const FOOTER_HEIGHT = 40; // Footer space
                     const MARGIN_TOP = 40;
                     const MARGIN_BOTTOM = 40;
@@ -1389,8 +1391,8 @@ const FormBuilderApp = () => {
                               display: 'flex',
                               flexDirection: 'column'
                             }}>
-                              {/* Header only on first page */}
-                              {pageIndex === 0 && (
+                              {/* Header only on first page and only if configured */}
+                              {pageIndex === 0 && showHeader && (
                                 <div style={{ 
                                   textAlign: formSettings.headerAlignment || 'center', 
                                   marginBottom: '20px' 
@@ -1421,7 +1423,7 @@ const FormBuilderApp = () => {
                                     color: formSettings.headerColor || '#333333',
                                     marginBottom: '8px'
                                   }}>
-                                    {formSettings.pdfHeader || 'Form Submission'}
+                                    {formSettings.pdfHeader}
                                   </h3>
                                   {formSettings.pdfSubheader && (
                                     <p style={{ 
