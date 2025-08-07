@@ -881,6 +881,263 @@ const FormBuilderApp = () => {
         subtitle="Create, share, and collect form responses • Generate professional PDFs"
         showHomeButton={true}
         onHome={() => window.location.href = '/'}
+        centerControls={
+          <>
+            {/* Builder/Preview Toggle */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: theme.spacing[2],
+              padding: `${theme.spacing[1]} ${theme.spacing[2]}`,
+              background: theme.colors.secondary[50],
+              borderRadius: theme.borderRadius.lg,
+              border: `1px solid ${theme.colors.secondary[200]}`
+            }}>
+              <span style={{ 
+                fontSize: theme.typography.fontSize.sm, 
+                color: currentView === 'builder' ? theme.colors.secondary[900] : theme.colors.secondary[500],
+                fontWeight: currentView === 'builder' ? theme.typography.fontWeight.medium : theme.typography.fontWeight.normal
+              }}>
+                Builder
+              </span>
+              <label style={{ 
+                position: 'relative', 
+                display: 'inline-block', 
+                width: '44px', 
+                height: '24px',
+                cursor: 'pointer'
+              }}>
+                <input 
+                  type="checkbox" 
+                  checked={currentView === 'preview'}
+                  onChange={() => setCurrentView(currentView === 'builder' ? 'preview' : 'builder')}
+                  style={{ opacity: 0, width: 0, height: 0 }}
+                />
+                <span style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: currentView === 'preview' ? theme.colors.primary[500] : theme.colors.secondary[300],
+                  borderRadius: '24px',
+                  transition: 'background-color 0.2s',
+                }}>
+                  <span style={{
+                    position: 'absolute',
+                    left: currentView === 'preview' ? '22px' : '2px',
+                    top: '2px',
+                    height: '20px',
+                    width: '20px',
+                    backgroundColor: 'white',
+                    borderRadius: '50%',
+                    transition: 'left 0.2s',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                  }} />
+                </span>
+              </label>
+              <span style={{ 
+                fontSize: theme.typography.fontSize.sm, 
+                color: currentView === 'preview' ? theme.colors.secondary[900] : theme.colors.secondary[500],
+                fontWeight: currentView === 'preview' ? theme.typography.fontWeight.medium : theme.typography.fontWeight.normal
+              }}>
+                Preview
+              </span>
+            </div>
+
+            {/* Form Options Dropdown */}
+            <div className="form-options-container" style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowFormOptions(!showFormOptions)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: theme.spacing[2],
+                  padding: `${theme.spacing[2]} ${theme.spacing[3]}`,
+                  background: 'white',
+                  border: `1px solid ${theme.colors.secondary[300]}`,
+                  borderRadius: theme.borderRadius.md,
+                  fontSize: theme.typography.fontSize.sm,
+                  color: theme.colors.secondary[700],
+                  cursor: formFields.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: formFields.length === 0 ? 0.5 : 1,
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  if (formFields.length > 0) {
+                    e.currentTarget.style.borderColor = theme.colors.secondary[400];
+                    e.currentTarget.style.background = theme.colors.secondary[50];
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = theme.colors.secondary[300];
+                  e.currentTarget.style.background = 'white';
+                }}
+                disabled={formFields.length === 0}
+              >
+                <FileText size={16} />
+                Form Options
+                <ChevronDown size={14} style={{ 
+                  transform: showFormOptions ? 'rotate(180deg)' : 'rotate(0)',
+                  transition: 'transform 0.2s'
+                }} />
+              </button>
+              
+              {/* Dropdown Menu */}
+              {showFormOptions && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: '4px',
+                  background: 'white',
+                  border: `1px solid ${theme.colors.secondary[200]}`,
+                  borderRadius: theme.borderRadius.md,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  zIndex: 1000,
+                  minWidth: '200px',
+                  overflow: 'hidden'
+                }}>
+                  <button
+                    onClick={() => {
+                      setShowFormOptions(false);
+                      setShowShareModal(true);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 16px',
+                      background: 'transparent',
+                      border: 'none',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      color: theme.colors.secondary[700],
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'background 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = theme.colors.secondary[50]}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <Share2 size={16} />
+                    Share Form
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setShowFormOptions(false);
+                      setShowSaveDialog(true);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 16px',
+                      background: 'transparent',
+                      border: 'none',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      color: theme.colors.secondary[700],
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'background 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = theme.colors.secondary[50]}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <Save size={16} />
+                    Save Form
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setShowFormOptions(false);
+                      setShowLoadDialog(true);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 16px',
+                      background: 'transparent',
+                      border: 'none',
+                      borderBottom: `1px solid ${theme.colors.secondary[100]}`,
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      color: theme.colors.secondary[700],
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'background 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = theme.colors.secondary[50]}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <FolderOpen size={16} />
+                    Load Form
+                  </button>
+                  
+                  {/* Divider */}
+                  <div style={{ borderTop: `1px solid ${theme.colors.secondary[100]}`, margin: 0 }} />
+                  
+                  <button
+                    onClick={() => {
+                      setShowFormOptions(false);
+                      generatePDF(false);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 16px',
+                      background: 'transparent',
+                      border: 'none',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      color: theme.colors.secondary[700],
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'background 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = theme.colors.secondary[50]}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    disabled={isGeneratingPDF}
+                  >
+                    <Download size={16} />
+                    {isGeneratingPDF ? 'Generating...' : 'Generate Filled PDF'}
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setShowFormOptions(false);
+                      generatePDF(true);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 16px',
+                      background: 'transparent',
+                      border: 'none',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      color: theme.colors.secondary[700],
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'background 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = theme.colors.secondary[50]}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    disabled={isGeneratingPDF}
+                  >
+                    <FileText size={16} />
+                    Generate Blank Template
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        }
         rightContent={
           <UserDropdown
             user={currentUser}
@@ -890,271 +1147,8 @@ const FormBuilderApp = () => {
         }
       />
 
-      <Layout.Section padding="sm">
-        <div style={{ width: '100%', maxWidth: '100%', padding: '0 20px' }}>
-          {/* Usage limits now shown in user dropdown for cleaner UI */}
-
-          {/* Form Builder with integrated preview toggle */}
-          <div style={{ marginBottom: theme.spacing[6] }}>
-            <Layout.Flex justify="space-between" align="center" style={{ marginBottom: theme.spacing[6] }}>
-              <Layout.Flex gap={3} align="center">
-                {/* Clean Toggle Switch for Builder/Preview */}
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: theme.spacing[3],
-                  padding: `${theme.spacing[1]} ${theme.spacing[2]}`,
-                  background: theme.colors.secondary[50],
-                  borderRadius: theme.borderRadius.lg,
-                  border: `1px solid ${theme.colors.secondary[200]}`
-                }}>
-                  <span style={{ 
-                    fontSize: theme.typography.fontSize.sm, 
-                    color: currentView === 'builder' ? theme.colors.secondary[900] : theme.colors.secondary[500],
-                    fontWeight: currentView === 'builder' ? theme.typography.fontWeight.medium : theme.typography.fontWeight.normal
-                  }}>
-                    Builder
-                  </span>
-                  <label style={{ 
-                    position: 'relative', 
-                    display: 'inline-block', 
-                    width: '44px', 
-                    height: '24px',
-                    cursor: 'pointer'
-                  }}>
-                    <input 
-                      type="checkbox" 
-                      checked={currentView === 'preview'}
-                      onChange={() => setCurrentView(currentView === 'builder' ? 'preview' : 'builder')}
-                      style={{ opacity: 0, width: 0, height: 0 }}
-                    />
-                    <span style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      backgroundColor: currentView === 'preview' ? theme.colors.primary[500] : theme.colors.secondary[300],
-                      borderRadius: '24px',
-                      transition: 'background-color 0.2s',
-                    }}>
-                      <span style={{
-                        position: 'absolute',
-                        left: currentView === 'preview' ? '22px' : '2px',
-                        top: '2px',
-                        height: '20px',
-                        width: '20px',
-                        backgroundColor: 'white',
-                        borderRadius: '50%',
-                        transition: 'left 0.2s',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                      }} />
-                    </span>
-                  </label>
-                  <span style={{ 
-                    fontSize: theme.typography.fontSize.sm, 
-                    color: currentView === 'preview' ? theme.colors.secondary[900] : theme.colors.secondary[500],
-                    fontWeight: currentView === 'preview' ? theme.typography.fontWeight.medium : theme.typography.fontWeight.normal
-                  }}>
-                    Preview
-                  </span>
-                </div>
-              </Layout.Flex>
-
-              {/* Clean Form Options Dropdown */}
-              <div className="form-options-container" style={{ position: 'relative' }}>
-                <button
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: theme.spacing[2],
-                    padding: `${theme.spacing[2]} ${theme.spacing[3]}`,
-                    background: 'white',
-                    border: `1px solid ${theme.colors.secondary[300]}`,
-                    borderRadius: theme.borderRadius.md,
-                    fontSize: theme.typography.fontSize.sm,
-                    color: theme.colors.secondary[700],
-                    cursor: formFields.length === 0 ? 'not-allowed' : 'pointer',
-                    opacity: formFields.length === 0 ? 0.5 : 1,
-                    transition: 'all 0.2s',
-                    fontWeight: theme.typography.fontWeight.medium
-                  }}
-                  onClick={() => formFields.length > 0 && setShowFormOptions(!showFormOptions)}
-                  onMouseEnter={(e) => {
-                    if (formFields.length > 0) {
-                      e.currentTarget.style.borderColor = theme.colors.secondary[400];
-                      e.currentTarget.style.background = theme.colors.secondary[50];
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = theme.colors.secondary[300];
-                    e.currentTarget.style.background = 'white';
-                  }}
-                  disabled={formFields.length === 0}
-                >
-                  <FileText size={16} />
-                  Form Options
-                  <ChevronDown size={14} style={{ 
-                    transform: showFormOptions ? 'rotate(180deg)' : 'rotate(0)',
-                    transition: 'transform 0.2s'
-                  }} />
-                </button>
-                
-                {/* Dropdown Menu */}
-                {showFormOptions && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '100%',
-                    right: 0,
-                    marginTop: '4px',
-                    background: 'white',
-                    border: `1px solid ${theme.colors.secondary[200]}`,
-                    borderRadius: theme.borderRadius.md,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                    zIndex: 10,
-                    minWidth: '200px',
-                    overflow: 'hidden'
-                  }}>
-                    <button
-                      onClick={() => {
-                        setShowFormOptions(false);
-                        setShowShareModal(true);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '10px 16px',
-                        background: 'transparent',
-                        border: 'none',
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        color: theme.colors.secondary[700],
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        transition: 'background 0.2s'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = theme.colors.secondary[50]}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <Share2 size={16} />
-                      Share Form
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        setShowFormOptions(false);
-                        setShowSaveDialog(true);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '10px 16px',
-                        background: 'transparent',
-                        border: 'none',
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        color: theme.colors.secondary[700],
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        transition: 'background 0.2s'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = theme.colors.secondary[50]}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <Save size={16} />
-                      Save Form
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        setShowFormOptions(false);
-                        setShowLoadDialog(true);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '10px 16px',
-                        background: 'transparent',
-                        border: 'none',
-                        borderBottom: `1px solid ${theme.colors.secondary[100]}`,
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        color: theme.colors.secondary[700],
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        transition: 'background 0.2s'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = theme.colors.secondary[50]}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <FolderOpen size={16} />
-                      Load Form
-                    </button>
-                    
-                    {/* Divider */}
-                    <div style={{ borderTop: `1px solid ${theme.colors.secondary[100]}`, margin: 0 }} />
-                    
-                    <button
-                      onClick={() => {
-                        setShowFormOptions(false);
-                        generatePDF(false);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '10px 16px',
-                        background: 'transparent',
-                        border: 'none',
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        color: theme.colors.secondary[700],
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        transition: 'background 0.2s'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = theme.colors.secondary[50]}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                      disabled={isGeneratingPDF}
-                    >
-                      <Download size={16} />
-                      {isGeneratingPDF ? 'Generating...' : 'Generate Filled PDF'}
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        setShowFormOptions(false);
-                        generatePDF(true);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '10px 16px',
-                        background: 'transparent',
-                        border: 'none',
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        color: theme.colors.secondary[700],
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        transition: 'background 0.2s'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = theme.colors.secondary[50]}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                      disabled={isGeneratingPDF}
-                    >
-                      <FileText size={16} />
-                      Generate Blank Template
-                    </button>
-                  </div>
-                )}
-              </div>
-            </Layout.Flex>
-          </div>
+      <Layout.Section padding="none">
+        <div style={{ width: '100%', maxWidth: '100%' }}>
 
           {currentView === 'builder' && (
             <RowBasedFormBuilder

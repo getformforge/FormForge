@@ -11,7 +11,8 @@ const Header = ({
   onHome,
   user,
   onUserClick,
-  rightContent
+  rightContent,
+  centerControls
 }) => {
   return (
     <div style={{
@@ -70,6 +71,7 @@ const Header = ({
 
           {/* Right Section - User and Actions */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: theme.spacing[3] }}>
+            {centerControls}
             {rightContent}
             
             {user && (
