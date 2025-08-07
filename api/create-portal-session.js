@@ -1,12 +1,9 @@
 // Complete Customer Portal Session Creation
 // Deploy this to /api/create-portal-session
 
-import Stripe from 'stripe';
-import { adminAuth, adminDb } from './lib/firebase-admin.js';
+const Stripe = require('stripe');
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -26,6 +23,31 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Initialize Stripe
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    
+    // Initialize Firebase Admin inline to avoid import issues
+    const admin = require('firebase-admin');
+    
+    if (!admin.apps.length) {
+      try {
+        const serviceAccount = JSON.parse(
+          process.env.FIREBASE_SERVICE_ACCOUNT_KEY || '{}'
+        );
+        
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount),
+          projectId: 'formforge-production'
+        });
+      } catch (error) {
+        console.error('Failed to initialize Firebase Admin:', error);
+        return res.status(500).json({ 
+          error: 'Server configuration error',
+          details: 'Firebase initialization failed' 
+        });
+      }
+    }
+    
     const { userId, idToken } = req.body;
 
     // Verify the user's identity
@@ -33,13 +55,18 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'No authentication token provided' });
     }
 
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
-    if (decodedToken.uid !== userId) {
-      return res.status(403).json({ error: 'Unauthorized' });
+    try {
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      if (decodedToken.uid !== userId) {
+        return res.status(403).json({ error: 'Unauthorized' });
+      }
+    } catch (authError) {
+      console.error('Auth verification error:', authError);
+      return res.status(403).json({ error: 'Invalid authentication token' });
     }
 
     // Get user's Stripe customer ID from Firestore
-    const userDoc = await adminDb.collection('users').doc(userId).get();
+    const userDoc = await admin.firestore().collection('users').doc(userId).get();
     
     if (!userDoc.exists) {
       return res.status(404).json({ error: 'User not found' });
@@ -66,4 +93,4 @@ export default async function handler(req, res) {
       details: error.message 
     });
   }
-}
+};

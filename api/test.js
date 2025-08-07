@@ -1,5 +1,5 @@
 // Simple test endpoint to verify API deployment
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,6 +13,10 @@ export default function handler(req, res) {
   res.status(200).json({ 
     message: 'API is working!',
     timestamp: new Date().toISOString(),
-    method: req.method
+    method: req.method,
+    env: {
+      hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
+      hasFirebaseKey: !!process.env.FIREBASE_SERVICE_ACCOUNT_KEY
+    }
   });
-}
+};
