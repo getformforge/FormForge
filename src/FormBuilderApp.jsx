@@ -141,10 +141,24 @@ const FormBuilderApp = () => {
 
   // Load a saved template
   const loadTemplate = (template) => {
-    setFormFields(template.fields || []);
-    setFormRowsStructure(template.rows || []);
-    setFormSettings(template.settings || formSettings);
+    const fields = template.fields || [];
+    const rows = template.rows || [];
+    const settings = template.settings || formSettings;
+    
+    // Update state
+    setFormFields(fields);
+    setFormRowsStructure(rows);
+    setFormSettings(settings);
     setFormData({});
+    
+    // Update session storage for persistence
+    sessionStorage.setItem('formFields', JSON.stringify(fields));
+    sessionStorage.setItem('formRowsStructure', JSON.stringify(rows));
+    sessionStorage.setItem('formSettings', JSON.stringify(settings));
+    
+    // Force re-render of the form builder
+    setTemplateKey(Date.now());
+    
     setShowLoadDialog(false);
     alert(`✅ Loaded template: ${template.name}`);
   };
@@ -832,21 +846,12 @@ const FormBuilderApp = () => {
                 paddingLeft: theme.spacing[8],
                 paddingRight: theme.spacing[8]
               }}>
-                <h2 style={{
-                  fontSize: theme.typography.fontSize['2xl'],
-                  fontWeight: theme.typography.fontWeight.bold,
-                  color: theme.colors.secondary[900],
-                  margin: 0,
-                  marginBottom: theme.spacing[1]
-                }}>
-                  Form Builder
-                </h2>
                 <p style={{
                   fontSize: theme.typography.fontSize.sm,
                   color: theme.colors.secondary[600],
                   margin: 0
                 }}>
-                  {currentView === 'builder' ? 'Design your form with advanced field types' : 'Preview and test your form'}
+                  {currentView === 'builder' ? 'Build multi-column forms with flexible row layouts' : 'Preview and test your form'}
                 </p>
               </div>
               
