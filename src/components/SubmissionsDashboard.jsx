@@ -477,85 +477,126 @@ const generatePDFFromSubmission = (submission, form) => {
     }));
   }
   
-  // Process rows with multi-column support
+  // Process rows with multi-column support (match blank PDF logic)
   rows.forEach((row) => {
     if (!row.fields || row.fields.length === 0) return;
     
-    // Check if we need a new page
-    if (currentY > pageHeight - 50) {
-      pdf.addPage();
-      currentY = 30;
+    // Check if we need a new page before adding content (match blank PDF logic)
+    if (currentY > pageHeight - 50 && row.fields && row.fields.length > 0) {
+      const remainingHeight = pageHeight - currentY;
+      const estimatedRowHeight = 30;
+      
+      if (remainingHeight < estimatedRowHeight) {
+        pdf.addPage();
+        currentY = 30;
+      }
     }
     
     const columns = row.columns || 1;
     const columnWidth = (pageWidth - (margin * 2)) / columns;
+    const columnSpacing = 8;
     let maxHeight = 0;
     
     row.fields.forEach((field, colIndex) => {
-      const xPos = margin + (colIndex * columnWidth);
-      
-      // Handle layout fields
+      // Handle layout fields (match blank PDF logic exactly)
       if (['heading1', 'heading2', 'paragraph', 'divider'].includes(field.type)) {
-        // Layout elements span full width
-        if (field.type === 'divider') {
+        // Check if layout element would overflow
+        if (currentY > pageHeight - 45) {
+          pdf.addPage();
+          currentY = 30;
+        }
+        
+        if (field.type === 'heading1') {
+          pdf.setFontSize(18);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(51, 51, 51);
+          const lines = pdf.splitTextToSize(field.content || 'Heading', pageWidth - (margin * 2));
+          pdf.text(lines[0], margin, currentY);
+          currentY += 12;
+        } else if (field.type === 'heading2') {
+          pdf.setFontSize(14);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(51, 51, 51);
+          const lines = pdf.splitTextToSize(field.content || 'Subheading', pageWidth - (margin * 2));
+          pdf.text(lines[0], margin, currentY);
+          currentY += 10;
+        } else if (field.type === 'paragraph') {
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(102, 102, 102);
+          const lines = pdf.splitTextToSize(field.content || '', pageWidth - (margin * 2));
+          lines.forEach(line => {
+            pdf.text(line, margin, currentY);
+            currentY += 5;
+          });
+          currentY += 3;
+        } else if (field.type === 'divider') {
           pdf.setDrawColor(200, 200, 200);
           pdf.line(margin, currentY, pageWidth - margin, currentY);
           currentY += 8;
-        } else {
-          // Handle headings and paragraphs
-          const fontSize = field.type === 'heading1' ? 16 : field.type === 'heading2' ? 14 : 10;
-          pdf.setFontSize(fontSize);
-          pdf.setFont('helvetica', field.type.startsWith('heading') ? 'bold' : 'normal');
-          pdf.text(field.content || '', margin, currentY);
-          currentY += fontSize / 2 + 5;
         }
       } else if (field.label) {
-        // Regular form fields
-        pdf.setFontSize(10);
+        // Regular form fields - position based on column
+        const xPos = margin + (colIndex * columnWidth);
+        
+        pdf.setFontSize(9);
         pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(51, 51, 51);
         pdf.text(`${field.label}:`, xPos, currentY);
         
+        pdf.setFontSize(9);
         pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(102, 102, 102);
         let value = submission.responses?.[field.id] || '(Not provided)';
         
         if (field.type === 'checkbox') {
-          // Use actual checkbox symbols - use Unicode entities for PDF compatibility
-          value = value ? '\u2611' : '\u2610';
+          // Use text representation for PDF compatibility
+          value = value ? '[X]' : '[ ]';
           if (field.placeholder) {
             value = value + ' ' + field.placeholder;
           }
         } else if (field.type === 'rating') {
           value = value ? `${'★'.repeat(value)}${'☆'.repeat(5-value)} (${value}/5)` : '(Not rated)';
-        } else if (field.type === 'signature' && value && value.startsWith('data:image')) {
-          // Add signature image
-          try {
-            const imgWidth = 40;
-            const imgHeight = 20;
-            pdf.addImage(value, 'PNG', xPos, currentY + 5, imgWidth, imgHeight);
-            maxHeight = Math.max(maxHeight, 30);
-            return; // Skip text rendering for signature
-          } catch (e) {
-            value = '✍ Signed';
+        } else if (field.type === 'signature') {
+          if (value && value.startsWith('data:image')) {
+            // Add signature image
+            try {
+              const imgWidth = 60;
+              const imgHeight = 30;
+              pdf.addImage(value, 'PNG', xPos, currentY + 10, imgWidth, imgHeight);
+              // Adjust field height to account for image
+              const fieldHeight = 10 + imgHeight + 10;
+              maxHeight = Math.max(maxHeight, fieldHeight);
+              value = ''; // Don't add text since we added the image
+            } catch (e) {
+              console.error('Error adding signature image:', e);
+              value = '✍ Signed';
+            }
+          } else {
+            value = '(No signature)';
           }
         }
         
-        // Handle text value with column width constraint
-        const maxTextWidth = columnWidth - 10;
-        const splitText = pdf.splitTextToSize(String(value), maxTextWidth);
-        
-        pdf.setTextColor(102, 102, 102);
-        pdf.setFontSize(9);
-        if (Array.isArray(splitText)) {
-          splitText.forEach((line, index) => {
-            pdf.text(line, xPos, currentY + 5 + (index * 4));
+        // Only add text if we have a value (skip for signature images)
+        if (value) {
+          const maxTextWidth = columnWidth - columnSpacing;
+          const valueText = String(value);
+          const lines = pdf.splitTextToSize(valueText, maxTextWidth);
+          
+          lines.forEach((line, idx) => {
+            pdf.text(line, xPos, currentY + 8 + (idx * 4));
           });
-          const fieldHeight = 5 + (splitText.length * 4) + 5;
+          
+          const fieldHeight = 8 + (lines.length * 4) + 8;
           maxHeight = Math.max(maxHeight, fieldHeight);
         }
       }
     });
     
-    currentY += maxHeight;
+    // Move Y position by the maximum height of the row (match blank PDF logic)
+    if (maxHeight > 0) {
+      currentY += maxHeight;
+    }
   });
   
   // Add page numbers and footer
@@ -722,7 +763,7 @@ const SubmissionDetailModal = ({ submission, form, onClose }) => {
                           {field.type === 'signature' && value && value.startsWith('data:image') ? (
                             <img src={value} alt="Signature" style={{ maxHeight: '60px', maxWidth: '200px' }} />
                           ) : field.type === 'checkbox' ? (
-                            <span>{value ? '☑ Yes' : '☐ No'}</span>
+                            <span>{value ? '[X] Yes' : '[ ] No'}</span>
                           ) : (
                             value || <span style={{ color: theme.colors.secondary[400] }}>No response</span>
                           )}
@@ -765,7 +806,7 @@ const SubmissionDetailModal = ({ submission, form, onClose }) => {
                     {field.type === 'signature' && value && value.startsWith('data:image') ? (
                       <img src={value} alt="Signature" style={{ maxHeight: '60px', maxWidth: '200px' }} />
                     ) : field.type === 'checkbox' ? (
-                      <span>{value ? '☑ Yes' : '☐ No'}</span>
+                      <span>{value ? '[X] Yes' : '[ ] No'}</span>
                     ) : (
                       value || <span style={{ color: theme.colors.secondary[400] }}>No response</span>
                     )}

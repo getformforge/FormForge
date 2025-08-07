@@ -640,11 +640,11 @@ const FormBuilderApp = () => {
             let value = isBlank ? '________________________' : (formData[field.id] || '(Not provided)');
             
             if (field.type === 'checkbox') {
-              // For checkboxes, show an actual checkbox symbol
+              // For checkboxes, use text representation for PDF compatibility
               if (isBlank) {
-                value = '☐'; // Empty checkbox for blank templates
+                value = '[ ]'; // Empty checkbox for blank templates
               } else {
-                value = formData[field.id] ? '☑' : '☐'; // Checked or unchecked box
+                value = formData[field.id] ? '[X]' : '[ ]'; // Checked or unchecked box
               }
               // Also show the label text if provided
               if (field.placeholder) {
@@ -1314,30 +1314,46 @@ const FormBuilderApp = () => {
                     
                     fieldRows.forEach((row, index) => {
                       // Calculate more accurate row height based on field types
-                      let estimatedHeight = ROW_HEIGHT;
+                      let estimatedHeight = 0;
                       
-                      // Layout elements have different heights
+                      // Calculate height more accurately based on actual PDF generation logic
                       if (row.fields && row.fields.length > 0) {
-                        const hasLayoutField = row.fields.some(f => ['heading1', 'heading2', 'paragraph', 'divider'].includes(f.type));
-                        const hasTextarea = row.fields.some(f => f.type === 'textarea');
-                        const hasSignature = row.fields.some(f => f.type === 'signature');
+                        // Check for layout fields first (they have specific heights)
+                        const layoutField = row.fields.find(f => ['heading1', 'heading2', 'paragraph', 'divider'].includes(f.type));
                         
-                        if (hasLayoutField) {
-                          // Layout fields take less space
-                          estimatedHeight = 25;
-                        } else if (hasSignature) {
-                          // Signature fields need more space
-                          estimatedHeight = 60;
-                        } else if (hasTextarea) {
-                          // Textareas need more space
-                          estimatedHeight = 50;
-                        } else if (row.columns > 1) {
-                          // Multi-column rows are more compact
-                          estimatedHeight = 30;
+                        if (layoutField) {
+                          if (layoutField.type === 'heading1') {
+                            estimatedHeight = 12;
+                          } else if (layoutField.type === 'heading2') {
+                            estimatedHeight = 10;
+                          } else if (layoutField.type === 'paragraph') {
+                            // Estimate based on content length
+                            const lineCount = Math.ceil((layoutField.content?.length || 0) / 80) || 1;
+                            estimatedHeight = (lineCount * 5) + 3;
+                          } else if (layoutField.type === 'divider') {
+                            estimatedHeight = 8;
+                          }
                         } else {
-                          // Single column regular fields
-                          estimatedHeight = 35;
+                          // Regular form fields
+                          let maxFieldHeight = 0;
+                          row.fields.forEach(field => {
+                            if (field.type === 'signature') {
+                              // Signature takes 30px image + padding
+                              maxFieldHeight = Math.max(maxFieldHeight, 50);
+                            } else if (field.type === 'textarea') {
+                              // Textareas might have multiple lines
+                              maxFieldHeight = Math.max(maxFieldHeight, 24);
+                            } else {
+                              // Standard fields (label + value + padding)
+                              maxFieldHeight = Math.max(maxFieldHeight, 24);
+                            }
+                          });
+                          estimatedHeight = maxFieldHeight;
                         }
+                      }
+                      
+                      if (estimatedHeight === 0) {
+                        estimatedHeight = 24; // Default height
                       }
                       
                       const maxHeight = currentPage.pageNumber === 1 ? FIRST_PAGE_USABLE : USABLE_HEIGHT;
@@ -1502,7 +1518,7 @@ const FormBuilderApp = () => {
                                               )
                                             ) : field.type === 'checkbox' ? (
                                               <span>
-                                                {formData[field.id] ? '☑' : '☐'}
+                                                {formData[field.id] ? '[X]' : '[ ]'}
                                                 {field.placeholder && ` ${field.placeholder}`}
                                               </span>
                                             ) : field.type === 'rating' ? (

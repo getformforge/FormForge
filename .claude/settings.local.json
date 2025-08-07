@@ -30,7 +30,9 @@
       "mcp__ide__getDiagnostics",
       "Bash(mv:*)",
       "Bash(npm run:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(true)"
     ],
     "deny": []
   }
