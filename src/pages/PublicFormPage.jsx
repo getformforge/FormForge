@@ -6,6 +6,7 @@ import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import { getPublishedForm, submitFormResponse } from '../services/formService';
+import { evaluateFieldConditions, getVisibleFields } from '../utils/conditionalLogicEvaluator';
 import { 
   AdvancedTextArea,
   AdvancedDatePicker,
@@ -55,6 +56,8 @@ const PublicFormPage = () => {
 
   const handleInputChange = (fieldId, value) => {
     setFormData(prev => ({ ...prev, [fieldId]: value }));
+    // Force re-render to update conditional logic visibility
+    setForm(prevForm => ({ ...prevForm }));
   };
 
   const handleSubmit = async (e) => {
@@ -102,18 +105,30 @@ const PublicFormPage = () => {
     
     // If form has rowsStructure, use that
     if (form?.rowsStructure && form.rowsStructure.length > 0) {
-      return form.rowsStructure.map(row => ({
-        ...row,
-        fields: row.fields || [],
-        columns: row.columns || 1
-      }));
+      return form.rowsStructure.map(row => {
+        // Apply conditional logic to filter visible fields
+        const visibleFields = (row.fields || []).filter(field => 
+          evaluateFieldConditions(field, formData, form.fields)
+        );
+        
+        return {
+          ...row,
+          fields: visibleFields,
+          columns: row.columns || 1
+        };
+      });
     }
     
     // Otherwise, build rows from field metadata
     const rows = [];
     const rowMap = new Map();
     
-    form.fields.forEach(field => {
+    // Filter visible fields based on conditional logic
+    const visibleFields = form.fields.filter(field => 
+      evaluateFieldConditions(field, formData, form.fields)
+    );
+    
+    visibleFields.forEach(field => {
       if (field.rowId && field.columns) {
         // Field has row information
         if (!rowMap.has(field.rowId)) {

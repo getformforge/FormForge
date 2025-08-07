@@ -37,6 +37,7 @@ import {
   checkPlanLimits,
   trackPDFGeneration
 } from './services/formService';
+import { evaluateFieldConditions, getVisibleFields } from './utils/conditionalLogicEvaluator';
 
 const FormBuilderApp = () => {
   const { currentUser } = useAuth();
@@ -292,21 +293,35 @@ const FormBuilderApp = () => {
   };
 
   // Group fields into rows based on the saved row structure
-  const getFieldRows = () => {
+  const getFieldRows = (applyConditionalLogic = false) => {
     if (formRowsStructure && formRowsStructure.length > 0) {
       // Use the saved row structure
-      return formRowsStructure.map(row => ({
-        ...row,
-        fields: row.fields || [],
-        columns: row.columns || 1
-      }));
+      return formRowsStructure.map(row => {
+        let fields = row.fields || [];
+        
+        // Apply conditional logic if requested (for preview/rendering)
+        if (applyConditionalLogic) {
+          fields = fields.filter(field => evaluateFieldConditions(field, formData, formFields));
+        }
+        
+        return {
+          ...row,
+          fields,
+          columns: row.columns || 1
+        };
+      });
     }
     
     // Fallback: create simple rows from fields
     const rows = [];
     let currentRow = { fields: [], columns: 1 };
     
-    formFields.forEach(field => {
+    // Filter fields if applying conditional logic
+    const fieldsToProcess = applyConditionalLogic 
+      ? formFields.filter(field => evaluateFieldConditions(field, formData, formFields))
+      : formFields;
+    
+    fieldsToProcess.forEach(field => {
       // Check if field has row information
       if (field.rowId && field.columns) {
         // Find or create the row
@@ -500,7 +515,8 @@ const FormBuilderApp = () => {
       }
       
       // Process form fields by rows for multi-column layout
-      const rows = getFieldRows();
+      // Apply conditional logic to filter visible fields for PDF
+      const rows = getFieldRows(true);
       rows.forEach((row) => {
         // Check if we need a new page before adding content (only if we have substantial content left)
         if (currentY > pageHeight - 50 && row.fields && row.fields.length > 0) {
@@ -840,20 +856,6 @@ const FormBuilderApp = () => {
                 </Button>
               </Layout.Flex>
 
-              <div style={{ 
-                textAlign: 'center',
-                flex: '1',
-                paddingLeft: theme.spacing[8],
-                paddingRight: theme.spacing[8]
-              }}>
-                <p style={{
-                  fontSize: theme.typography.fontSize.sm,
-                  color: theme.colors.secondary[600],
-                  margin: 0
-                }}>
-                  {currentView === 'builder' ? 'Build multi-column forms with flexible row layouts' : 'Preview and test your form'}
-                </p>
-              </div>
               
               <Layout.Flex gap={2} align="center">
                 <Button
@@ -1022,7 +1024,7 @@ const FormBuilderApp = () => {
                       border: '1px solid #e5e7eb'
                     }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing[4] }}>
-                        {getFieldRows().map((row, rowIndex) => (
+                        {getFieldRows(true).map((row, rowIndex) => (
                           <div key={rowIndex} style={{ 
                             display: 'grid',
                             gridTemplateColumns: row.columns === 1 ? '1fr' : row.columns === 2 ? '1fr 1fr' : '1fr 1fr 1fr',
@@ -1118,7 +1120,7 @@ const FormBuilderApp = () => {
                     let currentPage = { rows: [], pageNumber: 1 };
                     let currentHeight = HEADER_HEIGHT;
                     
-                    const fieldRows = getFieldRows();
+                    const fieldRows = getFieldRows(true); // Apply conditional logic for preview
                     
                     fieldRows.forEach((row, index) => {
                       // Estimate row height based on number of fields and columns

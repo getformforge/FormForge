@@ -7,6 +7,7 @@ import Layout from './layout/Layout';
 import { getFormSubmissions, getUserForms } from '../services/formService';
 import { theme } from '../styles/theme';
 import jsPDF from 'jspdf';
+import { evaluateFieldConditions, getVisibleFields } from '../utils/conditionalLogicEvaluator';
 
 const SubmissionsDashboard = ({ onClose }) => {
   const { currentUser } = useAuth();
@@ -414,8 +415,12 @@ const generatePDFFromSubmission = (submission, form) => {
   pdf.setDrawColor(200, 200, 200);
   pdf.line(margin, currentY - 10, pageWidth - margin, currentY - 10);
   
-  // Form fields and responses
-  form?.fields?.forEach((field) => {
+  // Form fields and responses - apply conditional logic
+  const visibleFields = form?.fields?.filter(field => 
+    evaluateFieldConditions(field, submission.responses || {}, form.fields)
+  ) || [];
+  
+  visibleFields.forEach((field) => {
     if (currentY > 250) {
       pdf.addPage();
       currentY = 30;
@@ -542,7 +547,9 @@ const SubmissionDetailModal = ({ submission, form, onClose }) => {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing[4] }}>
-          {form?.fields?.map(field => {
+          {form?.fields?.filter(field => 
+            evaluateFieldConditions(field, submission.responses || {}, form.fields)
+          ).map(field => {
             const value = submission.responses?.[field.id];
             return (
               <div key={field.id}>
