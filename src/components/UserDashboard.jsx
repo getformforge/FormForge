@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { User, LogOut, Crown, BarChart3, FileText, Mail, Calendar, CreditCard, TrendingUp, AlertTriangle, X } from 'lucide-react';
+import { User, LogOut, Crown, BarChart3, FileText, Mail, Calendar, CreditCard, TrendingUp, AlertTriangle, X, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { theme } from '../styles/theme';
+import { openCustomerPortal } from '../services/stripeService';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import SubmissionsDashboard from './SubmissionsDashboard';
@@ -18,6 +19,7 @@ const UserDashboard = ({ onClose }) => {
   const [loading, setLoading] = useState(true);
   const [showSubmissions, setShowSubmissions] = useState(false);
   const [showUsageDetails, setShowUsageDetails] = useState(false);
+  const [managingSubscription, setManagingSubscription] = useState(false);
 
   useEffect(() => {
     const fetchUserStats = async () => {
@@ -34,6 +36,18 @@ const UserDashboard = ({ onClose }) => {
 
     fetchUserStats();
   }, [currentUser]);
+
+  const handleManageSubscription = async () => {
+    setManagingSubscription(true);
+    try {
+      await openCustomerPortal();
+      // Portal opens in new tab, so we just reset the loading state
+      setTimeout(() => setManagingSubscription(false), 2000);
+    } catch (error) {
+      alert(error.message || 'Unable to open subscription management');
+      setManagingSubscription(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -335,11 +349,41 @@ const UserDashboard = ({ onClose }) => {
               <div style={styles.planDetailValue}>{planLimits.price}</div>
             </div>
           </div>
-          {userPlan === 'free' && (
-            <button style={styles.upgradeButton}>
-              Upgrade to Pro
-            </button>
-          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {userPlan === 'free' ? (
+              <button style={styles.upgradeButton}>
+                <Crown size={16} />
+                Upgrade to Pro
+              </button>
+            ) : (
+              <>
+                <button 
+                  style={{
+                    ...styles.upgradeButton,
+                    background: theme.colors.secondary[100],
+                    color: theme.colors.secondary[700],
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                  onClick={handleManageSubscription}
+                  disabled={managingSubscription}
+                >
+                  <Settings size={16} />
+                  {managingSubscription ? 'Opening...' : 'Manage Subscription'}
+                </button>
+                <p style={{
+                  fontSize: '12px',
+                  color: theme.colors.secondary[500],
+                  textAlign: 'center',
+                  margin: 0
+                }}>
+                  Cancel anytime • Update payment • Download invoices
+                </p>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Usage & Limits Section - Compact and Subtle */}
