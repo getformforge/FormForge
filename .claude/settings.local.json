@@ -29,7 +29,8 @@
       "Bash(firebase hosting:enable:*)",
       "mcp__ide__getDiagnostics",
       "Bash(mv:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }
