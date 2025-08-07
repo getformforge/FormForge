@@ -3,7 +3,7 @@ import { Download, Save, Eye, Settings, Share2, BarChart3, ChevronDown } from 'l
 import { useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
 import UserDashboard from './components/UserDashboard';
-import PlanLimits from './components/PlanLimits';
+// PlanLimits moved to UserDashboard dropdown
 import PricingModal from './components/PricingModal';
 import Templates from './components/Templates';
 import ShareFormModal from './components/ShareFormModal';
@@ -687,7 +687,7 @@ const FormBuilderApp = () => {
 
       <Layout.Section padding="sm">
         <div style={{ width: '100%', maxWidth: '100%', padding: '0 20px' }}>
-          <PlanLimits onUpgrade={() => setShowPricingModal(true)} refreshTrigger={statsRefreshTrigger} />
+          {/* Usage limits now shown in user dropdown for cleaner UI */}
 
           {/* Form Builder with integrated preview toggle */}
           <div style={{ marginBottom: theme.spacing[6] }}>

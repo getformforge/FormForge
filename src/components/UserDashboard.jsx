@@ -1,33 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { User, LogOut, Crown, BarChart3, FileText, Mail, Calendar, CreditCard } from 'lucide-react';
+import { User, LogOut, Crown, BarChart3, FileText, Mail, Calendar, CreditCard, TrendingUp, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import SubmissionsDashboard from './SubmissionsDashboard';
+import { getUserStats, getPlanLimits as getServicePlanLimits } from '../services/formService';
 
 const UserDashboard = ({ onClose }) => {
   const { currentUser, userPlan, logout } = useAuth();
   const [userStats, setUserStats] = useState({
     formCount: 0,
     submissionCount: 0,
-    createdAt: null
+    createdAt: null,
+    pdfGenerations: {}
   });
   const [loading, setLoading] = useState(true);
   const [showSubmissions, setShowSubmissions] = useState(false);
+  const [showUsageDetails, setShowUsageDetails] = useState(false);
 
   useEffect(() => {
     const fetchUserStats = async () => {
       if (currentUser) {
         try {
-          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            setUserStats({
-              formCount: data.formCount || 0,
-              submissionCount: data.submissionCount || 0,
-              createdAt: data.createdAt?.toDate() || null
-            });
-          }
+          const stats = await getUserStats(currentUser.uid);
+          setUserStats(stats);
         } catch (error) {
           console.error('Error fetching user stats:', error);
         }
@@ -344,6 +340,170 @@ const UserDashboard = ({ onClose }) => {
               Upgrade to Pro
             </button>
           )}
+        </div>
+
+        {/* Usage & Limits Section - Compact and Subtle */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.03)',
+          border: '1px solid rgba(255, 107, 53, 0.15)',
+          borderRadius: '12px',
+          padding: '16px',
+          marginBottom: '24px'
+        }}>
+          <div 
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              marginBottom: showUsageDetails ? '16px' : 0
+            }}
+            onClick={() => setShowUsageDetails(!showUsageDetails)}
+          >
+            <div style={{
+              fontSize: '14px',
+              fontWeight: '600',
+              color: 'rgba(255,255,255,0.8)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <TrendingUp size={16} />
+              Usage & Limits
+            </div>
+            <div style={{
+              fontSize: '24px',
+              color: 'rgba(255,255,255,0.5)',
+              transform: showUsageDetails ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.2s ease'
+            }}>
+              ⌄
+            </div>
+          </div>
+
+          {showUsageDetails && (() => {
+            const limits = getServicePlanLimits(userPlan);
+            const currentMonth = new Date().toISOString().slice(0, 7);
+            const monthlyPDFs = userStats.pdfGenerations?.[currentMonth] || 0;
+            
+            const formUsagePercent = limits.maxForms === -1 ? 0 : (userStats.formCount / limits.maxForms) * 100;
+            const submissionUsagePercent = limits.maxSubmissions === -1 ? 0 : (userStats.submissionCount / limits.maxSubmissions) * 100;
+            const pdfUsagePercent = limits.maxPDFsPerMonth === -1 ? 0 : (monthlyPDFs / limits.maxPDFsPerMonth) * 100;
+            
+            const isAnyLimitClose = formUsagePercent > 80 || submissionUsagePercent > 80 || pdfUsagePercent > 80;
+
+            return (
+              <>
+                {isAnyLimitClose && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 12px',
+                    backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                    border: '1px solid rgba(251, 191, 36, 0.3)',
+                    borderRadius: '8px',
+                    color: '#fbbf24',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    marginBottom: '12px'
+                  }}>
+                    <AlertTriangle size={14} />
+                    Approaching plan limits
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {/* Forms Usage */}
+                  <div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '4px'
+                    }}>
+                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>Forms</span>
+                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', fontWeight: '600' }}>
+                        {userStats.formCount}{limits.maxForms === -1 ? ' / Unlimited' : ` / ${limits.maxForms}`}
+                      </span>
+                    </div>
+                    <div style={{
+                      width: '100%',
+                      height: '4px',
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      borderRadius: '2px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        height: '100%',
+                        backgroundColor: formUsagePercent > 80 ? '#fbbf24' : '#10b981',
+                        width: limits.maxForms === -1 ? '100%' : `${Math.min(formUsagePercent, 100)}%`,
+                        transition: 'width 0.3s ease'
+                      }} />
+                    </div>
+                  </div>
+
+                  {/* Submissions Usage */}
+                  <div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '4px'
+                    }}>
+                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>Submissions</span>
+                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', fontWeight: '600' }}>
+                        {userStats.submissionCount}{limits.maxSubmissions === -1 ? ' / Unlimited' : ` / ${limits.maxSubmissions}`}
+                      </span>
+                    </div>
+                    <div style={{
+                      width: '100%',
+                      height: '4px',
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      borderRadius: '2px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        height: '100%',
+                        backgroundColor: submissionUsagePercent > 80 ? '#fbbf24' : '#10b981',
+                        width: limits.maxSubmissions === -1 ? '100%' : `${Math.min(submissionUsagePercent, 100)}%`,
+                        transition: 'width 0.3s ease'
+                      }} />
+                    </div>
+                  </div>
+
+                  {/* PDF Generation Usage */}
+                  <div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '4px'
+                    }}>
+                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>PDFs This Month</span>
+                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', fontWeight: '600' }}>
+                        {monthlyPDFs}{limits.maxPDFsPerMonth === -1 ? ' / Unlimited' : ` / ${limits.maxPDFsPerMonth}`}
+                      </span>
+                    </div>
+                    <div style={{
+                      width: '100%',
+                      height: '4px',
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      borderRadius: '2px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        height: '100%',
+                        backgroundColor: pdfUsagePercent > 80 ? '#fbbf24' : '#10b981',
+                        width: limits.maxPDFsPerMonth === -1 ? '100%' : `${Math.min(pdfUsagePercent, 100)}%`,
+                        transition: 'width 0.3s ease'
+                      }} />
+                    </div>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
         </div>
 
         <div style={styles.memberSince}>

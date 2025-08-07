@@ -6,7 +6,7 @@ import jsPDF from 'jspdf';
 import { useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
 import UserDashboard from './components/UserDashboard';
-import PlanLimits from './components/PlanLimits';
+// PlanLimits moved to UserDashboard dropdown
 import PricingModal from './components/PricingModal';
 import Templates from './components/Templates';
 import { 
@@ -1703,7 +1703,7 @@ const FormPDFApp = () => {
               </div>
             </div>
 
-            <PlanLimits onUpgrade={() => setShowPricingModal(true)} refreshTrigger={statsRefreshTrigger} />
+            {/* Usage limits now shown in user dropdown for cleaner UI */}
 
             {!isPreview ? (
               <>
