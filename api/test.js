@@ -10,13 +10,31 @@ module.exports = function handler(req, res) {
     return;
   }
   
+  // Check environment variables
+  const hasStripeKey = !!process.env.STRIPE_SECRET_KEY;
+  const hasFirebaseKey = !!process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+  
+  // Try to parse Firebase key to check if it's valid JSON
+  let firebaseKeyValid = false;
+  if (hasFirebaseKey) {
+    try {
+      JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+      firebaseKeyValid = true;
+    } catch (e) {
+      firebaseKeyValid = false;
+    }
+  }
+  
   res.status(200).json({ 
     message: 'API is working!',
     timestamp: new Date().toISOString(),
     method: req.method,
-    env: {
-      hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
-      hasFirebaseKey: !!process.env.FIREBASE_SERVICE_ACCOUNT_KEY
+    environment: {
+      hasStripeKey,
+      hasFirebaseKey,
+      firebaseKeyValid,
+      stripeKeyLength: process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.length : 0,
+      nodeVersion: process.version
     }
   });
 };
