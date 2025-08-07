@@ -26,10 +26,20 @@ export const createCustomerPortalSession = async () => {
       })
     });
 
-    const data = await response.json();
+    // Log response status for debugging
+    console.log('Portal session response status:', response.status);
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      console.error('Failed to parse response:', parseError);
+      throw new Error('Invalid response from server. Please check if the API is deployed.');
+    }
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to create portal session');
+      console.error('Portal session error:', data);
+      throw new Error(data.error || data.details || 'Failed to create portal session');
     }
 
     return data;

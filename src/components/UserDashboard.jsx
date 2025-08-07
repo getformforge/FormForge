@@ -466,15 +466,15 @@ const UserDashboard = ({ onClose }) => {
                       alignItems: 'center',
                       marginBottom: '4px'
                     }}>
-                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>Forms</span>
-                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', fontWeight: '600' }}>
+                      <span style={{ fontSize: '12px', color: theme.colors.secondary[500] }}>Forms</span>
+                      <span style={{ fontSize: '12px', color: theme.colors.secondary[700], fontWeight: '600' }}>
                         {userStats.formCount}{limits.maxForms === -1 ? ' / Unlimited' : ` / ${limits.maxForms}`}
                       </span>
                     </div>
                     <div style={{
                       width: '100%',
                       height: '4px',
-                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      backgroundColor: theme.colors.secondary[100],
                       borderRadius: '2px',
                       overflow: 'hidden'
                     }}>
@@ -495,15 +495,15 @@ const UserDashboard = ({ onClose }) => {
                       alignItems: 'center',
                       marginBottom: '4px'
                     }}>
-                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>Submissions</span>
-                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', fontWeight: '600' }}>
+                      <span style={{ fontSize: '12px', color: theme.colors.secondary[500] }}>Submissions</span>
+                      <span style={{ fontSize: '12px', color: theme.colors.secondary[700], fontWeight: '600' }}>
                         {userStats.submissionCount}{limits.maxSubmissions === -1 ? ' / Unlimited' : ` / ${limits.maxSubmissions}`}
                       </span>
                     </div>
                     <div style={{
                       width: '100%',
                       height: '4px',
-                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      backgroundColor: theme.colors.secondary[100],
                       borderRadius: '2px',
                       overflow: 'hidden'
                     }}>
@@ -524,15 +524,15 @@ const UserDashboard = ({ onClose }) => {
                       alignItems: 'center',
                       marginBottom: '4px'
                     }}>
-                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>PDFs This Month</span>
-                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', fontWeight: '600' }}>
+                      <span style={{ fontSize: '12px', color: theme.colors.secondary[500] }}>PDFs This Month</span>
+                      <span style={{ fontSize: '12px', color: theme.colors.secondary[700], fontWeight: '600' }}>
                         {monthlyPDFs}{limits.maxPDFsPerMonth === -1 ? ' / Unlimited' : ` / ${limits.maxPDFsPerMonth}`}
                       </span>
                     </div>
                     <div style={{
                       width: '100%',
                       height: '4px',
-                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      backgroundColor: theme.colors.secondary[100],
                       borderRadius: '2px',
                       overflow: 'hidden'
                     }}>
