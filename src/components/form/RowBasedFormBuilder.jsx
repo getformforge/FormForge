@@ -304,7 +304,7 @@ const FormRow = ({ row, rowIndex, onUpdateRow, onDeleteRow, onUpdateField, onDel
               key={field.id}
               field={field}
               width={getFieldWidth()}
-              allFields={rows.flatMap(r => r.fields)}
+              allFields={rows.flatMap(r => r.fields || []).filter(Boolean)}
               onUpdate={(updates) => onUpdateField(rowIndex, fieldIndex, updates)}
               onDelete={() => onDeleteField(rowIndex, fieldIndex)}
             />
@@ -637,6 +637,12 @@ const RowBasedFormBuilder = ({ onFieldsChange, initialFields = [], initialRows =
 
   // Add field to a specific row
   const addFieldToRow = (rowIndex, fieldType) => {
+    // Safety check
+    if (!rows[rowIndex]) {
+      console.error('Invalid row index:', rowIndex);
+      return;
+    }
+
     const newField = {
       id: Date.now(),
       type: fieldType.type,
@@ -648,6 +654,10 @@ const RowBasedFormBuilder = ({ onFieldsChange, initialFields = [], initialRows =
     };
 
     const updatedRows = [...rows];
+    // Ensure fields array exists
+    if (!updatedRows[rowIndex].fields) {
+      updatedRows[rowIndex].fields = [];
+    }
     updatedRows[rowIndex].fields.push(newField);
     setRows(updatedRows);
     updateParentFields(updatedRows);
