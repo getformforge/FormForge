@@ -47,11 +47,13 @@ import {
   AlignLeft,
   Columns,
   Settings,
+  GitBranch,
   Columns2,
   Columns3,
   Square,
   FileSignature
 } from 'lucide-react';
+import ConditionalLogic from './ConditionalLogic';
 import { theme } from '../../styles/theme';
 
 // Draggable field type button
@@ -302,6 +304,7 @@ const FormRow = ({ row, rowIndex, onUpdateRow, onDeleteRow, onUpdateField, onDel
               key={field.id}
               field={field}
               width={getFieldWidth()}
+              allFields={rows.flatMap(r => r.fields)}
               onUpdate={(updates) => onUpdateField(rowIndex, fieldIndex, updates)}
               onDelete={() => onDeleteField(rowIndex, fieldIndex)}
             />
@@ -313,9 +316,11 @@ const FormRow = ({ row, rowIndex, onUpdateRow, onDeleteRow, onUpdateField, onDel
 };
 
 // Individual field card
-const FieldCard = ({ field, width, onUpdate, onDelete }) => {
+const FieldCard = ({ field, width, allFields = [], onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [showConditionalLogic, setShowConditionalLogic] = useState(false);
   const isLayoutField = ['heading1', 'heading2', 'paragraph', 'divider'].includes(field.type);
+  const hasConditions = field.conditions && field.conditions.length > 0;
 
   return (
     <div style={{
@@ -340,6 +345,22 @@ const FieldCard = ({ field, width, onUpdate, onDelete }) => {
           {isLayoutField ? field.type.replace('1', ' 1').replace('2', ' 2') : field.label}
         </span>
         <div style={{ display: 'flex', gap: '4px' }}>
+          {!isLayoutField && (
+            <button
+              onClick={() => setShowConditionalLogic(true)}
+              style={{
+                padding: '2px',
+                background: hasConditions ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+                border: 'none',
+                color: hasConditions ? '#3b82f6' : '#6b7280',
+                cursor: 'pointer',
+                borderRadius: '4px'
+              }}
+              title="Conditional Logic"
+            >
+              <GitBranch size={14} />
+            </button>
+          )}
           <button
             onClick={() => setIsEditing(!isEditing)}
             style={{
@@ -462,6 +483,55 @@ const FieldCard = ({ field, width, onUpdate, onDelete }) => {
               )}
             </>
           )}
+        </div>
+      )}
+
+      {/* Conditional Logic Modal */}
+      {showConditionalLogic && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }} onClick={() => setShowConditionalLogic(false)}>
+          <div style={{
+            maxWidth: '800px',
+            width: '90%',
+            maxHeight: '80vh',
+            background: '#ffffff',
+            borderRadius: '12px',
+            overflow: 'hidden'
+          }} onClick={(e) => e.stopPropagation()}>
+            <ConditionalLogic
+              field={field}
+              allFields={allFields}
+              onUpdate={onUpdate}
+              onClose={() => setShowConditionalLogic(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Visual indicator for fields with conditions */}
+      {hasConditions && (
+        <div style={{
+          position: 'absolute',
+          top: '4px',
+          right: '4px',
+          background: 'linear-gradient(45deg, #3b82f6, #06b6d4)',
+          color: 'white',
+          fontSize: '10px',
+          padding: '2px 6px',
+          borderRadius: '4px',
+          fontWeight: '600'
+        }}>
+          CONDITIONAL
         </div>
       )}
     </div>

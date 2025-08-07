@@ -202,6 +202,43 @@ const FormPDFApp = () => {
     }
   };
 
+  const duplicateTemplate = async (template) => {
+    if (!currentUser) return;
+    
+    // Check plan limits
+    const canCreateForm = await checkPlanLimits(currentUser.uid, 'create_form');
+    if (!canCreateForm) {
+      alert('❌ You have reached your plan limit for forms. Please upgrade to create more forms.');
+      return;
+    }
+    
+    // Create a new template with the same fields but new name
+    const duplicatedTemplate = {
+      name: `${template.name} (Copy)`,
+      fields: template.fields.map(field => ({
+        ...field,
+        id: Date.now() + Math.random() // Generate new IDs for fields
+      })),
+      createdAt: new Date().toISOString()
+    };
+    
+    const success = await saveFormTemplate(currentUser.uid, duplicatedTemplate);
+    
+    if (success) {
+      const templates = await getUserFormTemplates(currentUser.uid);
+      setSavedTemplates(templates);
+      setStatsRefreshTrigger(prev => prev + 1); // Refresh stats
+      alert(`✅ Duplicated template: ${duplicatedTemplate.name}`);
+      
+      // Optionally load the duplicated template immediately
+      setFormFields(duplicatedTemplate.fields);
+      setFormData({});
+      setShowLoadDialog(false);
+    } else {
+      alert('❌ Failed to duplicate template. Please try again.');
+    }
+  };
+
   const generateModernPDF = (pdf, pageWidth, margin) => {
     let currentY = 40;
     
@@ -1963,12 +2000,29 @@ const FormPDFApp = () => {
                     <button
                       onClick={() => loadTemplate(template)}
                       style={{...styles.smallButton, ...styles.primaryButton}}
+                      title="Load this template"
                     >
                       Load
                     </button>
                     <button
+                      onClick={() => duplicateTemplate(template)}
+                      style={{
+                        ...styles.smallButton, 
+                        backgroundColor: '#10b981',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                      title="Duplicate this template"
+                    >
+                      <Copy size={14} />
+                      Duplicate
+                    </button>
+                    <button
                       onClick={() => deleteTemplate(template.id)}
                       style={{...styles.smallButton, ...styles.dangerButton}}
+                      title="Delete this template"
                     >
                       Delete
                     </button>
