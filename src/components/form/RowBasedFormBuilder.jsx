@@ -571,18 +571,8 @@ const RowBasedFormBuilder = ({ onFieldsChange, initialFields = [], initialRows =
     return [];
   });
   const [activeTab, setActiveTab] = useState('input');
-  const [pdfHeader, setPdfHeader] = useState(formSettings?.pdfHeader || '');
-  const [pdfSubheader, setPdfSubheader] = useState(formSettings?.pdfSubheader || '');
-  const [pdfDate, setPdfDate] = useState(formSettings?.pdfDate || new Date().toISOString().split('T')[0]);
-  const [showSettings, setShowSettings] = useState(false);
+  // PDF settings removed - now handled by PDFHeaderSettings component
   const [activeId, setActiveId] = useState(null);
-  
-  // Sync pdfDate when formSettings changes
-  useEffect(() => {
-    if (formSettings?.pdfDate) {
-      setPdfDate(formSettings.pdfDate);
-    }
-  }, [formSettings?.pdfDate]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -733,18 +723,7 @@ const RowBasedFormBuilder = ({ onFieldsChange, initialFields = [], initialRows =
     onFieldsChange(flatFields, rowsStructure); // Pass both flat fields and rows structure
   };
 
-  // Save PDF settings
-  const savePdfSettings = () => {
-    const settings = {
-      pdfHeader,
-      pdfSubheader,
-      pdfDate
-    };
-    onSettingsChange(settings);
-    // Also save to sessionStorage
-    sessionStorage.setItem('formSettings', JSON.stringify(settings));
-    setShowSettings(false);
-  };
+  // PDF settings now handled by PDFHeaderSettings component
 
   const tabs = [
     { id: 'layout', label: 'Layout', icon: <Columns size={16} /> },
@@ -771,163 +750,18 @@ const RowBasedFormBuilder = ({ onFieldsChange, initialFields = [], initialRows =
           flexDirection: 'column',
           overflow: 'hidden'
         }}>
-          {/* PDF Settings Button */}
-          <div style={{
-            padding: '16px',
+          {/* PDF Settings removed - now integrated in main form */}
+          <div style={{ 
+            padding: '20px',
             borderBottom: '1px solid #e5e7eb'
           }}>
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              style={{
-                width: '100%',
-                padding: '10px',
-                background: showSettings ? '#3b82f6' : '#f3f4f6',
-                color: showSettings ? '#ffffff' : '#374151',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px'
-              }}
-            >
-              <FileSignature size={16} />
-              PDF Header Settings
-            </button>
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#111827' }}>
+              Add Fields
+            </h3>
+            <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#6b7280' }}>
+              Drag fields to rows in your form
+            </p>
           </div>
-
-          {showSettings ? (
-            <div style={{ padding: '16px' }}>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{
-                  display: 'block',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  color: '#374151',
-                  marginBottom: '6px'
-                }}>
-                  PDF Header Title
-                </label>
-                <input
-                  type="text"
-                  value={pdfHeader}
-                  onChange={(e) => setPdfHeader(e.target.value)}
-                  placeholder="Enter PDF header (e.g., Application Form)"
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{
-                  display: 'block',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  color: '#374151',
-                  marginBottom: '6px'
-                }}>
-                  PDF Subtitle
-                </label>
-                <input
-                  type="text"
-                  value={pdfSubheader}
-                  onChange={(e) => setPdfSubheader(e.target.value)}
-                  placeholder="Enter PDF subtitle (optional)"
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{
-                  display: 'block',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  color: '#374151',
-                  marginBottom: '6px'
-                }}>
-                  Form Date
-                </label>
-                <input
-                  type="date"
-                  value={pdfDate}
-                  onChange={(e) => {
-                    setPdfDate(e.target.value);
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  onClick={savePdfSettings}
-                  style={{
-                    flex: 1,
-                    padding: '8px',
-                    background: '#3b82f6',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Save Settings
-                </button>
-                <button
-                  onClick={() => {
-                    setPdfHeader('');
-                    setPdfSubheader('');
-                    setPdfDate(new Date().toISOString().split('T')[0]);
-                    const settings = { pdfHeader: '', pdfSubheader: '', pdfDate: new Date().toISOString().split('T')[0] };
-                    onSettingsChange(settings);
-                    sessionStorage.setItem('formSettings', JSON.stringify(settings));
-                  }}
-                  style={{
-                    padding: '8px',
-                    background: '#ef4444',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Clear
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div style={{ 
-                padding: '20px',
-                borderBottom: '1px solid #e5e7eb'
-              }}>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#111827' }}>
-                  Add Fields
-                </h3>
-                <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#6b7280' }}>
-                  Drag fields to rows in your form
-                </p>
-              </div>
 
               {/* Tabs */}
               <div style={{ 
@@ -972,8 +806,6 @@ const RowBasedFormBuilder = ({ onFieldsChange, initialFields = [], initialRows =
                   ))}
                 </div>
               </div>
-            </>
-          )}
         </div>
 
         {/* Main Content - Form Builder */}
