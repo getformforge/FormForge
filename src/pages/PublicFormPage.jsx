@@ -96,38 +96,42 @@ const PublicFormPage = () => {
     }
   };
 
-  // Group fields into rows based on their widths
+  // Group fields into rows based on the saved row structure or field metadata
   const getFieldRows = () => {
+    if (!form?.fields || form.fields.length === 0) return [];
+    
+    // If form has rowsStructure, use that
+    if (form?.rowsStructure && form.rowsStructure.length > 0) {
+      return form.rowsStructure.map(row => ({
+        ...row,
+        fields: row.fields || [],
+        columns: row.columns || 1
+      }));
+    }
+    
+    // Otherwise, build rows from field metadata
     const rows = [];
-    let currentRow = [];
-    let currentRowWidth = 0;
-
-    form?.fields.forEach(field => {
-      const fieldWidth = field.width || 'full';
-      const widthMap = {
-        'full': 1,
-        'half': 0.5,
-        'third': 0.333,
-        'two-thirds': 0.666
-      };
-      const width = widthMap[fieldWidth];
-
-      if (currentRowWidth + width > 1.01 || fieldWidth === 'full') {
-        if (currentRow.length > 0) {
-          rows.push(currentRow);
+    const rowMap = new Map();
+    
+    form.fields.forEach(field => {
+      if (field.rowId && field.columns) {
+        // Field has row information
+        if (!rowMap.has(field.rowId)) {
+          const newRow = { id: field.rowId, fields: [], columns: field.columns };
+          rowMap.set(field.rowId, newRow);
+          rows.push(newRow);
         }
-        currentRow = [field];
-        currentRowWidth = width;
+        rowMap.get(field.rowId).fields.push(field);
       } else {
-        currentRow.push(field);
-        currentRowWidth += width;
+        // No row info, create single column row
+        rows.push({ 
+          id: Date.now() + Math.random(), 
+          fields: [field], 
+          columns: 1 
+        });
       }
     });
-
-    if (currentRow.length > 0) {
-      rows.push(currentRow);
-    }
-
+    
     return rows;
   };
 
@@ -165,7 +169,7 @@ const PublicFormPage = () => {
             onChange={(e) => handleInputChange(field.id, e.target.value)}
             style={{
               width: '100%',
-              padding: theme.spacing[3],
+              padding: `${theme.spacing[3]} ${theme.spacing[4]}`,
               border: error ? `2px solid ${theme.colors.error[500]}` : `2px solid ${theme.colors.secondary[200]}`,
               borderRadius: theme.borderRadius.lg,
               fontSize: theme.typography.fontSize.base,
@@ -221,7 +225,7 @@ const PublicFormPage = () => {
             required={field.required}
             style={{
               width: '100%',
-              padding: theme.spacing[3],
+              padding: `${theme.spacing[3]} ${theme.spacing[4]}`,
               border: error ? `2px solid ${theme.colors.error[500]}` : `2px solid ${theme.colors.secondary[200]}`,
               borderRadius: theme.borderRadius.lg,
               fontSize: theme.typography.fontSize.base,
@@ -332,69 +336,94 @@ const PublicFormPage = () => {
     <Layout>
       <Layout.Section padding="lg" style={{ 
         minHeight: '100vh',
-        background: formTheme?.id === 'dark' ? '#0f0f1a' : 
-                   formTheme?.id === 'glass' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' :
-                   'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
+        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
       }}>
-        <Layout.Container size="sm">
-          <div 
-            style={{
-              ...(themeStyles.container || {}),
-              margin: '40px auto',
-              maxWidth: '600px'
-            }}
-          >
-            <div>
-              <h1 style={themeStyles.title || { fontSize: '32px', fontWeight: '700', color: '#111827', marginBottom: '8px' }}>
+        <div style={{ 
+          width: '100%', 
+          maxWidth: '900px', 
+          margin: '0 auto',
+          padding: '0 20px'
+        }}>
+          <Card variant="glass" padding="xl" style={{
+            margin: '40px auto',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ 
+              marginBottom: theme.spacing[8],
+              paddingBottom: theme.spacing[6],
+              borderBottom: `2px solid ${theme.colors.secondary[200]}`
+            }}>
+              <h1 style={{ 
+                fontSize: '36px', 
+                fontWeight: theme.typography.fontWeight.bold, 
+                color: theme.colors.secondary[900], 
+                marginBottom: theme.spacing[3],
+                textAlign: 'center'
+              }}>
                 {form.title}
               </h1>
               {form.description && (
-                <p style={themeStyles.description || { fontSize: '16px', color: '#6B7280', marginBottom: '32px' }}>
+                <p style={{ 
+                  fontSize: theme.typography.fontSize.lg, 
+                  color: theme.colors.secondary[600], 
+                  textAlign: 'center',
+                  maxWidth: '600px',
+                  margin: '0 auto'
+                }}>
                   {form.description}
                 </p>
               )}
             </div>
 
             <form onSubmit={handleSubmit}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing[6] }}>
                 {getFieldRows().map((row, rowIndex) => (
                   <div key={rowIndex} style={{ 
-                    display: 'flex', 
-                    gap: '16px',
-                    flexWrap: 'wrap'
+                    display: 'grid',
+                    gridTemplateColumns: row.columns === 1 ? '1fr' : row.columns === 2 ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))',
+                    gap: theme.spacing[6]
                   }}>
-                    {row.map(field => {
-                      const widthMap = {
-                        'full': '100%',
-                        'half': 'calc(50% - 8px)',
-                        'third': 'calc(33.333% - 10px)',
-                        'two-thirds': 'calc(66.666% - 8px)'
-                      };
-                      const fieldWidth = widthMap[field.width || 'full'];
+                    {(row.fields || []).map(field => {
                       
                       // Handle layout fields
                       if (field.type === 'heading1') {
                         return (
-                          <div key={field.id} style={{ width: '100%' }}>
-                            <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#111827', margin: '0 0 16px 0' }}>
+                          <div key={field.id} style={{ gridColumn: '1 / -1' }}>
+                            <h2 style={{ 
+                              fontSize: '32px', 
+                              fontWeight: theme.typography.fontWeight.bold, 
+                              color: theme.colors.secondary[900], 
+                              margin: `${theme.spacing[4]} 0 ${theme.spacing[4]} 0`,
+                              paddingTop: theme.spacing[4]
+                            }}>
                               {field.content || 'Main Heading'}
-                            </h1>
+                            </h2>
                           </div>
                         );
                       }
                       if (field.type === 'heading2') {
                         return (
-                          <div key={field.id} style={{ width: '100%' }}>
-                            <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#374151', margin: '0 0 12px 0' }}>
+                          <div key={field.id} style={{ gridColumn: '1 / -1' }}>
+                            <h3 style={{ 
+                              fontSize: '24px', 
+                              fontWeight: theme.typography.fontWeight.semibold, 
+                              color: theme.colors.secondary[800], 
+                              margin: `${theme.spacing[3]} 0 ${theme.spacing[3]} 0` 
+                            }}>
                               {field.content || 'Sub Heading'}
-                            </h2>
+                            </h3>
                           </div>
                         );
                       }
                       if (field.type === 'paragraph') {
                         return (
-                          <div key={field.id} style={{ width: '100%' }}>
-                            <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 12px 0', lineHeight: '1.6' }}>
+                          <div key={field.id} style={{ gridColumn: '1 / -1' }}>
+                            <p style={{ 
+                              fontSize: theme.typography.fontSize.base, 
+                              color: theme.colors.secondary[600], 
+                              margin: `0 0 ${theme.spacing[4]} 0`, 
+                              lineHeight: '1.7' 
+                            }}>
                               {field.content || 'Paragraph text...'}
                             </p>
                           </div>
@@ -402,19 +431,29 @@ const PublicFormPage = () => {
                       }
                       if (field.type === 'divider') {
                         return (
-                          <div key={field.id} style={{ width: '100%' }}>
-                            <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', margin: '20px 0' }} />
+                          <div key={field.id} style={{ gridColumn: '1 / -1' }}>
+                            <hr style={{ 
+                              border: 'none', 
+                              borderTop: `2px solid ${theme.colors.secondary[200]}`, 
+                              margin: `${theme.spacing[6]} 0` 
+                            }} />
                           </div>
                         );
                       }
                       
                       // Regular form fields
                       return (
-                        <div key={field.id} className="field-wrapper" style={{ width: fieldWidth }}>
-                          <label>
+                        <div key={field.id} style={{ width: '100%' }}>
+                          <label style={{
+                            display: 'block',
+                            fontSize: theme.typography.fontSize.base,
+                            fontWeight: theme.typography.fontWeight.medium,
+                            color: theme.colors.secondary[700],
+                            marginBottom: theme.spacing[2]
+                          }}>
                             {field.label}
                             {field.required && (
-                              <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>
+                              <span style={{ color: theme.colors.error[500], marginLeft: theme.spacing[1] }}>*</span>
                             )}
                           </label>
                           {renderFormField(field)}
@@ -426,40 +465,38 @@ const PublicFormPage = () => {
               </div>
 
               <div style={{ 
-                marginTop: '32px', 
+                marginTop: theme.spacing[8], 
                 display: 'flex', 
                 justifyContent: 'center' 
               }}>
-                <button
+                <Button
                   type="submit"
-                  className="submit-button"
-                  style={{
-                    ...themeStyles.submitButton,
-                    cursor: submitting ? 'not-allowed' : 'pointer',
-                    opacity: submitting ? 0.7 : 1
-                  }}
+                  variant="primary"
+                  size="lg"
+                  leftIcon={!submitting && <Send size={18} />}
                   disabled={submitting}
+                  loading={submitting}
                 >
                   {submitting ? 'Submitting...' : 'Submit Form'}
-                </button>
+                </Button>
               </div>
             </form>
 
             <div style={{ 
-              marginTop: '32px', 
+              marginTop: theme.spacing[8], 
               textAlign: 'center',
-              borderTop: formTheme?.id === 'minimal' ? '1px solid #000' : '1px solid rgba(0, 0, 0, 0.1)',
-              paddingTop: '16px'
+              borderTop: `1px solid ${theme.colors.secondary[200]}`,
+              paddingTop: theme.spacing[4]
             }}>
               <p style={{
-                fontSize: '12px',
-                color: formTheme?.id === 'dark' ? '#6b6b80' : '#9ca3af'
+                fontSize: theme.typography.fontSize.xs,
+                color: theme.colors.secondary[500]
               }}>
                 Powered by <strong>FormForge</strong>
               </p>
             </div>
-          </div>
-        </Layout.Container>
+          </Card>
+        </div>
       </Layout.Section>
     </Layout>
   );

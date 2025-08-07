@@ -245,22 +245,36 @@ const ShareFormModal = ({ isOpen, onClose, onPublish, isPublishing }) => {
             </div>
 
             <div style={styles.urlContainer}>
-              <label style={styles.label}>
-                <Users size={16} style={{ display: 'inline', marginRight: theme.spacing[1] }} />
+              <label style={{
+                ...styles.label,
+                display: 'flex',
+                alignItems: 'center',
+                gap: theme.spacing[1],
+                marginBottom: theme.spacing[3]
+              }}>
+                <Users size={16} />
                 Shareable Link
               </label>
-              <div style={styles.urlText}>
+              <div style={{
+                ...styles.urlText,
+                background: '#ffffff',
+                padding: theme.spacing[3],
+                borderRadius: theme.borderRadius.md,
+                border: `1px solid ${theme.colors.secondary[200]}`,
+                marginBottom: theme.spacing[4]
+              }}>
                 {shareUrl}
               </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                leftIcon={urlCopied ? <CheckCircle size={14} /> : <Copy size={14} />}
-                onClick={copyToClipboard}
-                style={{ width: '100%' }}
-              >
-                {urlCopied ? 'Copied!' : 'Copy Link'}
-              </Button>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <Button
+                  variant={urlCopied ? "success" : "primary"}
+                  size="md"
+                  leftIcon={urlCopied ? <CheckCircle size={16} /> : <Copy size={16} />}
+                  onClick={copyToClipboard}
+                >
+                  {urlCopied ? 'Link Copied!' : 'Copy Link'}
+                </Button>
+              </div>
             </div>
 
             <div style={{ 

@@ -362,19 +362,45 @@ const generatePDFFromSubmission = (submission, form) => {
   const pdf = new jsPDF();
   const pageWidth = pdf.internal.pageSize.getWidth();
   const margin = 20;
-  let currentY = 40;
+  let currentY = 30;
 
-  // Professional header
-  pdf.setFillColor(255, 107, 53);
-  pdf.rect(0, 0, pageWidth, 35, 'F');
+  // Get custom PDF settings from sessionStorage
+  const savedSettings = sessionStorage.getItem('formSettings');
+  const formSettings = savedSettings ? JSON.parse(savedSettings) : null;
   
-  pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(24);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text(form?.title || 'Form Submission', pageWidth / 2, 25, { align: 'center' });
+  // Add custom header if set, otherwise use form title
+  if (formSettings?.pdfHeader) {
+    pdf.setFontSize(20);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(51, 51, 51);
+    pdf.text(formSettings.pdfHeader, pageWidth / 2, currentY, { align: 'center' });
+    currentY += 10;
+    
+    if (formSettings.pdfSubheader) {
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(102, 102, 102);
+      pdf.text(formSettings.pdfSubheader, pageWidth / 2, currentY, { align: 'center' });
+      currentY += 8;
+    }
+    
+    currentY += 10;
+    pdf.setDrawColor(200, 200, 200);
+    pdf.line(margin, currentY, pageWidth - margin, currentY);
+    currentY += 15;
+  } else if (form?.title) {
+    pdf.setFontSize(20);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(51, 51, 51);
+    pdf.text(form.title, pageWidth / 2, currentY, { align: 'center' });
+    currentY += 10;
+    
+    pdf.setDrawColor(200, 200, 200);
+    pdf.line(margin, currentY, pageWidth - margin, currentY);
+    currentY += 15;
+  }
   
   pdf.setTextColor(0, 0, 0);
-  currentY = 60;
   
   // Submission info
   pdf.setFontSize(12);

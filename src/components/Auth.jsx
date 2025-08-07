@@ -47,6 +47,10 @@ const Auth = ({ onAuthSuccess }) => {
         await signup(email, password, displayName.trim());
       }
       onAuthSuccess?.();
+      // Force reload to ensure proper state update
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       // Use secure error handling
       const errorInfo = errorService.handle(error, 'authentication');

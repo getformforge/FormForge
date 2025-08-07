@@ -1,0 +1,10 @@
+{
+  "name": "formforge-api",
+  "version": "1.0.0",
+  "description": "API endpoints for FormForge",
+  "dependencies": {
+    "stripe": "^14.10.0",
+    "micro": "^10.0.1",
+    "firebase-admin": "^12.0.0"
+  }
+}

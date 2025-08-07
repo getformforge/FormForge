@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Save, Eye, Settings, Share2, BarChart3 } from 'lucide-react';
+import { Download, Save, Eye, Settings, Share2, BarChart3, ChevronDown } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
 import UserDashboard from './components/UserDashboard';
@@ -40,11 +40,34 @@ import {
 
 const FormBuilderApp = () => {
   const { currentUser } = useAuth();
+  
+  // Clear session storage when user changes
+  useEffect(() => {
+    const storedUserId = sessionStorage.getItem('currentUserId');
+    if (currentUser) {
+      if (storedUserId && storedUserId !== currentUser.uid) {
+        // Different user logged in, clear all session data
+        sessionStorage.clear();
+      }
+      sessionStorage.setItem('currentUserId', currentUser.uid);
+    } else {
+      // User logged out, clear session
+      sessionStorage.clear();
+    }
+  }, [currentUser]);
   const [currentView, setCurrentView] = useState('builder'); // builder, preview, settings
-  const [formFields, setFormFields] = useState([
-    { id: 1, type: 'text', label: 'Full Name', required: true },
-    { id: 2, type: 'email', label: 'Email Address', required: true }
-  ]);
+  const [formFields, setFormFields] = useState(() => {
+    if (!currentUser) return [];
+    const savedFields = sessionStorage.getItem('formFields');
+    if (savedFields) {
+      try {
+        return JSON.parse(savedFields);
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
   const [formData, setFormData] = useState({});
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [showUserDashboard, setShowUserDashboard] = useState(false);
@@ -54,16 +77,43 @@ const FormBuilderApp = () => {
   const [showSubmissions, setShowSubmissions] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [statsRefreshTrigger, setStatsRefreshTrigger] = useState(0);
+  const [showPdfOptions, setShowPdfOptions] = useState(false);
+  
+  // Close PDF options dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.pdf-dropdown-container')) {
+        setShowPdfOptions(false);
+      }
+    };
+    
+    if (showPdfOptions) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showPdfOptions]);
   const [templateKey, setTemplateKey] = useState(Date.now());
-  const [formSettings, setFormSettings] = useState({
-    pdfHeader: '',
-    pdfSubheader: ''
+  const [formSettings, setFormSettings] = useState(() => {
+    if (!currentUser) return { pdfHeader: '', pdfSubheader: '', pdfDate: new Date().toISOString().split('T')[0] };
+    const savedSettings = sessionStorage.getItem('formSettings');
+    return savedSettings ? JSON.parse(savedSettings) : {
+      pdfHeader: '',
+      pdfSubheader: '',
+      pdfDate: new Date().toISOString().split('T')[0]
+    };
   });
-  const [formRowsStructure, setFormRowsStructure] = useState([]);
+  const [formRowsStructure, setFormRowsStructure] = useState(() => {
+    if (!currentUser) return [];
+    const savedRows = sessionStorage.getItem('formRowsStructure');
+    return savedRows ? JSON.parse(savedRows) : [];
+  });
+  // Auto-save is enabled, no need for manual save state
 
 
   // Check for template from landing pages on component mount
   useEffect(() => {
+    if (!currentUser) return; // Don't load templates if not logged in
+    
     const selectedTemplate = sessionStorage.getItem('selectedTemplate');
     if (selectedTemplate) {
       try {
@@ -88,57 +138,68 @@ const FormBuilderApp = () => {
         sessionStorage.removeItem('selectedTemplate');
       }
     }
-  }, []);
+  }, [currentUser]);
 
   const handleFieldsChange = (newFields, rowsStructure) => {
-    setFormFields(newFields);
+    setFormFields(newFields || []);
     if (rowsStructure) {
       setFormRowsStructure(rowsStructure);
+      sessionStorage.setItem('formRowsStructure', JSON.stringify(rowsStructure));
     }
+    sessionStorage.setItem('formFields', JSON.stringify(newFields || []));
     // Clear form data for removed fields
-    const fieldIds = new Set(newFields.map(f => f.id));
+    const fieldIds = new Set((newFields || []).map(f => f.id));
     const cleanedFormData = Object.fromEntries(
       Object.entries(formData).filter(([key]) => fieldIds.has(parseInt(key)))
     );
     setFormData(cleanedFormData);
   };
 
+  // Auto-save happens in handleFieldsChange, no need for manual save
+
   const handleInputChange = (fieldId, value) => {
     setFormData(prev => ({ ...prev, [fieldId]: value }));
   };
 
-  // Group fields into rows based on their widths
+  // Group fields into rows based on the saved row structure
   const getFieldRows = () => {
+    if (formRowsStructure && formRowsStructure.length > 0) {
+      // Use the saved row structure
+      return formRowsStructure.map(row => ({
+        ...row,
+        fields: row.fields || [],
+        columns: row.columns || 1
+      }));
+    }
+    
+    // Fallback: create simple rows from fields
     const rows = [];
-    let currentRow = [];
-    let currentRowWidth = 0;
-
+    let currentRow = { fields: [], columns: 1 };
+    
     formFields.forEach(field => {
-      const fieldWidth = field.width || 'full';
-      const widthMap = {
-        'full': 1,
-        'half': 0.5,
-        'third': 0.333,
-        'two-thirds': 0.666
-      };
-      const width = widthMap[fieldWidth];
-
-      if (currentRowWidth + width > 1.01 || fieldWidth === 'full') {
-        if (currentRow.length > 0) {
-          rows.push(currentRow);
+      // Check if field has row information
+      if (field.rowId && field.columns) {
+        // Find or create the row
+        let existingRow = rows.find(r => r.id === field.rowId);
+        if (!existingRow) {
+          existingRow = { id: field.rowId, fields: [], columns: field.columns };
+          rows.push(existingRow);
         }
-        currentRow = [field];
-        currentRowWidth = width;
+        existingRow.fields.push(field);
       } else {
-        currentRow.push(field);
-        currentRowWidth += width;
+        // No row info, use simple layout
+        currentRow.fields.push(field);
+        if (currentRow.fields.length >= 1) {
+          rows.push({ ...currentRow, id: Date.now() + Math.random() });
+          currentRow = { fields: [], columns: 1 };
+        }
       }
     });
-
-    if (currentRow.length > 0) {
-      rows.push(currentRow);
+    
+    if (currentRow.fields.length > 0) {
+      rows.push({ ...currentRow, id: Date.now() + Math.random() });
     }
-
+    
     return rows;
   };
 
@@ -233,7 +294,7 @@ const FormBuilderApp = () => {
     }
   };
 
-  const generatePDF = async () => {
+  const generatePDF = async (isBlank = false) => {
     // Check rate limiting
     const rateLimitCheck = rateLimitService.checkAndRecord('pdf_generation', currentUser?.uid || 'anonymous');
     if (!rateLimitCheck.allowed) {
@@ -243,14 +304,16 @@ const FormBuilderApp = () => {
       return;
     }
 
-    // Validate required fields
-    const missingFields = formFields
-      .filter(field => field.required && !formData[field.id])
-      .map(field => field.label);
-    
-    if (missingFields.length > 0) {
-      alert(`❌ Please fill in the following required fields:\n\n${missingFields.join('\n')}`);
-      return;
+    // Only validate required fields if generating filled PDF
+    if (!isBlank) {
+      const missingFields = formFields
+        .filter(field => field.required && !formData[field.id])
+        .map(field => field.label);
+      
+      if (missingFields.length > 0) {
+        alert(`❌ Please fill in the following required fields:\n\n${missingFields.join('\n')}`);
+        return;
+      }
     }
     
     if (!currentUser) {
@@ -272,8 +335,10 @@ const FormBuilderApp = () => {
       
       const pdf = new jsPDF();
       const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 20;
-      let currentY = 30;
+      let currentY = 25;
+      let pageNumber = 1;
       
       // Add custom header if set
       if (formSettings.pdfHeader) {
@@ -291,93 +356,173 @@ const FormBuilderApp = () => {
           currentY += 8;
         }
         
-        currentY += 10;
+        // Add date in the header
+        pdf.setFontSize(11);
+        pdf.setTextColor(128, 128, 128);
+        const dateText = formSettings.pdfDate ? `Date: ${new Date(formSettings.pdfDate).toLocaleDateString()}` : `Date: ${new Date().toLocaleDateString()}`;
+        pdf.text(dateText, pageWidth / 2, currentY, { align: 'center' });
+        currentY += 6;
+        
+        currentY += 3;
         pdf.setDrawColor(200, 200, 200);
         pdf.line(margin, currentY, pageWidth - margin, currentY);
-        currentY += 15;
+        currentY += 10;
       }
       
-      // Process form fields
-      formFields.forEach((field) => {
-        if (currentY > 250) {
-          pdf.addPage();
-          currentY = 30;
+      // Process form fields by rows for multi-column layout
+      const rows = getFieldRows();
+      rows.forEach((row) => {
+        // Check if we need a new page before adding content (only if we have substantial content left)
+        if (currentY > pageHeight - 50 && row.fields && row.fields.length > 0) {
+          // Check if this is just trailing space - don't create new page for minimal content
+          const remainingHeight = pageHeight - currentY;
+          const estimatedRowHeight = 30; // Estimate height needed for a typical row
+          
+          if (remainingHeight < estimatedRowHeight) {
+            pdf.addPage();
+            pageNumber++;
+            currentY = 30;
+          }
         }
         
-        // Handle layout fields (headings, paragraphs, dividers)
-        if (field.type === 'heading1') {
-          pdf.setFontSize(20);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(51, 51, 51);
-          const lines = pdf.splitTextToSize(field.content || 'Heading', pageWidth - (margin * 2));
-          lines.forEach(line => {
-            pdf.text(line, margin, currentY);
-            currentY += 10;
-          });
-          currentY += 10;
-        } else if (field.type === 'heading2') {
-          pdf.setFontSize(16);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(51, 51, 51);
-          const lines = pdf.splitTextToSize(field.content || 'Subheading', pageWidth - (margin * 2));
-          lines.forEach(line => {
-            pdf.text(line, margin, currentY);
-            currentY += 8;
-          });
-          currentY += 8;
-        } else if (field.type === 'paragraph') {
-          pdf.setFontSize(11);
-          pdf.setFont('helvetica', 'normal');
-          pdf.setTextColor(102, 102, 102);
-          const lines = pdf.splitTextToSize(field.content || '', pageWidth - (margin * 2));
-          lines.forEach(line => {
-            pdf.text(line, margin, currentY);
-            currentY += 6;
-          });
-          currentY += 6;
-        } else if (field.type === 'divider') {
-          pdf.setDrawColor(200, 200, 200);
-          pdf.line(margin, currentY, pageWidth - margin, currentY);
-          currentY += 10;
-        } else if (field.label) {
-          // Regular form fields
-          pdf.setFontSize(12);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(51, 51, 51);
-          pdf.text(`${field.label}:`, margin, currentY);
-          
-          pdf.setFont('helvetica', 'normal');
-          pdf.setTextColor(102, 102, 102);
-          let value = formData[field.id] || '(Not provided)';
-          
-          if (field.type === 'checkbox') {
-            value = value ? '✓ Yes' : '✗ No';
-          } else if (field.type === 'rating') {
-            value = value ? `${'★'.repeat(value)}${'☆'.repeat(5-value)} (${value}/5)` : '(Not rated)';
-          } else if (field.type === 'signature') {
-            value = value ? '✍ Signed' : '(No signature)';
+        // Calculate column width
+        const columns = row.columns || 1;
+        const columnWidth = (pageWidth - (margin * 2)) / columns;
+        const columnSpacing = 8;
+        
+        // Find the maximum height needed for this row
+        let maxHeight = 0;
+        
+        (row.fields || []).forEach((field, colIndex) => {
+          // Layout fields span full width
+          if (['heading1', 'heading2', 'paragraph', 'divider'].includes(field.type)) {
+            // Check if layout element would overflow
+            if (currentY > pageHeight - 45) {
+              pdf.addPage();
+              pageNumber++;
+              currentY = 30;
+            }
+            if (field.type === 'heading1') {
+              pdf.setFontSize(18);
+              pdf.setFont('helvetica', 'bold');
+              pdf.setTextColor(51, 51, 51);
+              const lines = pdf.splitTextToSize(field.content || 'Heading', pageWidth - (margin * 2));
+              pdf.text(lines[0], margin, currentY);
+              currentY += 12;
+            } else if (field.type === 'heading2') {
+              pdf.setFontSize(14);
+              pdf.setFont('helvetica', 'bold');
+              pdf.setTextColor(51, 51, 51);
+              const lines = pdf.splitTextToSize(field.content || 'Subheading', pageWidth - (margin * 2));
+              pdf.text(lines[0], margin, currentY);
+              currentY += 10;
+            } else if (field.type === 'paragraph') {
+              pdf.setFontSize(10);
+              pdf.setFont('helvetica', 'normal');
+              pdf.setTextColor(102, 102, 102);
+              const lines = pdf.splitTextToSize(field.content || '', pageWidth - (margin * 2));
+              lines.forEach(line => {
+                pdf.text(line, margin, currentY);
+                currentY += 5;
+              });
+              currentY += 3;
+            } else if (field.type === 'divider') {
+              pdf.setDrawColor(200, 200, 200);
+              pdf.line(margin, currentY, pageWidth - margin, currentY);
+              currentY += 8;
+            }
+          } else if (field.label) {
+            // Regular form fields - position based on column
+            const xPos = margin + (colIndex * columnWidth);
+            
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(51, 51, 51);
+            pdf.text(`${field.label}:`, xPos, currentY);
+            
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(102, 102, 102);
+            let value = isBlank ? '________________________' : (formData[field.id] || '(Not provided)');
+            
+            if (field.type === 'checkbox') {
+              value = value ? '✓ Yes' : '✗ No';
+            } else if (field.type === 'rating') {
+              value = value ? `${'★'.repeat(value)}${'☆'.repeat(5-value)} (${value}/5)` : '(Not rated)';
+            } else if (field.type === 'signature') {
+              if (value && value.startsWith('data:image')) {
+                // Add signature image
+                try {
+                  const imgWidth = 60;
+                  const imgHeight = 30;
+                  pdf.addImage(value, 'PNG', xPos, currentY + 10, imgWidth, imgHeight);
+                  // Adjust field height to account for image
+                  const fieldHeight = 10 + imgHeight + 10;
+                  maxHeight = Math.max(maxHeight, fieldHeight);
+                  value = ''; // Don't add text since we added the image
+                } catch (e) {
+                  console.error('Error adding signature image:', e);
+                  value = '✍ Signed';
+                }
+              } else if (isBlank) {
+                value = '[Sign here] _____________________';
+              } else {
+                value = '(No signature)';
+              }
+            }
+            
+            // Only add text if we have a value (skip for signature images)
+            if (value) {
+              const maxTextWidth = columnWidth - columnSpacing;
+              const valueText = String(value);
+              const lines = pdf.splitTextToSize(valueText, maxTextWidth);
+              
+              lines.forEach((line, idx) => {
+                pdf.text(line, xPos, currentY + 8 + (idx * 4));
+              });
+              
+              const fieldHeight = 8 + (lines.length * 4) + 8;
+              maxHeight = Math.max(maxHeight, fieldHeight);
+            }
           }
-          
-          const valueText = String(value).substring(0, 60);
-          pdf.text(valueText, margin, currentY + 12);
-          
-          currentY += 25;
+        });
+        
+        // Move Y position by the maximum height of the row
+        if (maxHeight > 0) {
+          currentY += maxHeight;
         }
       });
       
-      // Minimal footer with just date
-      const footerY = pdf.internal.pageSize.getHeight() - 15;
-      pdf.setFontSize(8);
-      pdf.setTextColor(180, 180, 180);
-      pdf.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, footerY, { align: 'center' });
+      // Add page number to all pages
+      const totalPages = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(180, 180, 180);
+        const footerY = pageHeight - 15;
+        
+        // Page numbers
+        pdf.text(`Page ${i} of ${totalPages}`, pageWidth / 2, footerY, { align: 'center' });
+        
+        // Add small header name in footer on pages after the first
+        if (i > 1 && formSettings.pdfHeader) {
+          pdf.setFontSize(8);
+          pdf.setTextColor(180, 180, 180);
+          pdf.text(formSettings.pdfHeader, pageWidth - margin, footerY, { align: 'right' });
+        }
+      }
       
-      const fileName = `form-${new Date().toISOString().split('T')[0]}.pdf`;
+      const fileName = isBlank 
+        ? `blank-form-template-${new Date().toISOString().split('T')[0]}.pdf`
+        : `form-${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
       
       await trackPDFGeneration(currentUser.uid);
       setStatsRefreshTrigger(prev => prev + 1);
       
-      alert('✅ Professional PDF generated successfully!');
+      alert(isBlank 
+        ? '✅ Blank PDF template generated successfully!' 
+        : '✅ Professional PDF generated successfully!');
       
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -500,7 +645,8 @@ const FormBuilderApp = () => {
       const result = await publishFormToDb(currentUser.uid, {
         title: formInfo.title,
         description: formInfo.description,
-        fields: formFields
+        fields: formFields,
+        rowsStructure: formRowsStructure
       });
 
       if (result.success) {
@@ -598,16 +744,85 @@ const FormBuilderApp = () => {
                 >
                   Share Form
                 </Button>
-                <Button
-                  variant="primary"
-                  size="md"
-                  leftIcon={<Download size={16} />}
-                  onClick={generatePDF}
-                  disabled={isGeneratingPDF || formFields.length === 0}
-                  loading={isGeneratingPDF}
-                >
-                  {isGeneratingPDF ? 'Generating...' : 'Generate PDF'}
-                </Button>
+                <div className="pdf-dropdown-container" style={{ position: 'relative' }}>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    leftIcon={<Download size={16} />}
+                    rightIcon={<ChevronDown size={16} />}
+                    onClick={() => setShowPdfOptions(!showPdfOptions)}
+                    disabled={isGeneratingPDF || formFields.length === 0}
+                    loading={isGeneratingPDF}
+                  >
+                    {isGeneratingPDF ? 'Generating...' : 'Generate PDF'}
+                  </Button>
+                  {showPdfOptions && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      right: 0,
+                      marginTop: '4px',
+                      background: 'white',
+                      border: `1px solid ${theme.colors.secondary[200]}`,
+                      borderRadius: theme.borderRadius.md,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                      zIndex: 10,
+                      minWidth: '200px'
+                    }}>
+                      <button
+                        onClick={() => {
+                          setShowPdfOptions(false);
+                          generatePDF(false);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '10px 16px',
+                          background: 'transparent',
+                          border: 'none',
+                          borderBottom: `1px solid ${theme.colors.secondary[100]}`,
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          color: theme.colors.secondary[700],
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          transition: 'background 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.target.style.background = theme.colors.secondary[50]}
+                        onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                      >
+                        <Download size={16} />
+                        Generate Filled PDF
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowPdfOptions(false);
+                          generatePDF(true);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '10px 16px',
+                          background: 'transparent',
+                          border: 'none',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          color: theme.colors.secondary[700],
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          transition: 'background 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.target.style.background = theme.colors.secondary[50]}
+                        onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                      >
+                        <Download size={16} />
+                        Generate Blank Template
+                      </button>
+                    </div>
+                  )}
+                </div>
               </Layout.Flex>
             </Layout.Flex>
           </div>
@@ -671,7 +886,7 @@ const FormBuilderApp = () => {
                             gridTemplateColumns: row.columns === 1 ? '1fr' : row.columns === 2 ? '1fr 1fr' : '1fr 1fr 1fr',
                             gap: theme.spacing[4]
                           }}>
-                            {row.fields?.map(field => {
+                            {(row.fields || []).map(field => {
                               
                               // Handle layout fields
                               if (field.type === 'heading1') {
@@ -746,59 +961,199 @@ const FormBuilderApp = () => {
                 </Card.Header>
 
                 <Card.Content>
-                  <div style={{
-                    border: `1px solid ${theme.colors.secondary[200]}`,
-                    borderRadius: theme.borderRadius.lg,
-                    padding: theme.spacing[6],
-                    background: 'white',
-                    minHeight: '400px'
-                  }}>
-                    <div style={{ textAlign: 'center', marginBottom: theme.spacing[6] }}>
-                      <h3 style={{ 
-                        margin: 0, 
-                        fontSize: theme.typography.fontSize.xl,
-                        fontWeight: theme.typography.fontWeight.bold,
-                        color: theme.colors.secondary[900],
-                        marginBottom: theme.spacing[2]
-                      }}>
-                        Form Submission
-                      </h3>
-                      <p style={{ 
-                        color: theme.colors.secondary[600], 
-                        margin: 0,
-                        fontSize: theme.typography.fontSize.sm 
-                      }}>
-                        Generated on {new Date().toLocaleDateString()}
-                      </p>
+                  {(() => {
+                    // Calculate pages for PDF preview
+                    const A4_HEIGHT = 842; // A4 height at 72 DPI in pixels
+                    const HEADER_HEIGHT = 120; // Approximate header height
+                    const FOOTER_HEIGHT = 40; // Footer space
+                    const MARGIN_TOP = 40;
+                    const MARGIN_BOTTOM = 40;
+                    const ROW_HEIGHT = 35; // Approximate height per field row
+                    const USABLE_HEIGHT = A4_HEIGHT - MARGIN_TOP - MARGIN_BOTTOM - FOOTER_HEIGHT;
+                    const FIRST_PAGE_USABLE = USABLE_HEIGHT - HEADER_HEIGHT;
+                    
+                    let pages = [];
+                    let currentPage = { rows: [], pageNumber: 1 };
+                    let currentHeight = HEADER_HEIGHT;
+                    
+                    const fieldRows = getFieldRows();
+                    
+                    fieldRows.forEach((row, index) => {
+                      // Estimate row height based on number of fields and columns
+                      const estimatedHeight = row.columns > 1 ? ROW_HEIGHT : ROW_HEIGHT * 1.2;
+                      const maxHeight = currentPage.pageNumber === 1 ? FIRST_PAGE_USABLE : USABLE_HEIGHT;
+                      
+                      if (currentHeight + estimatedHeight > maxHeight) {
+                        // Start new page
+                        pages.push(currentPage);
+                        currentPage = { rows: [], pageNumber: currentPage.pageNumber + 1 };
+                        currentHeight = MARGIN_TOP;
+                      }
+                      
+                      currentPage.rows.push(row);
+                      currentHeight += estimatedHeight;
+                    });
+                    
+                    // Add last page
+                    if (currentPage.rows.length > 0) {
+                      pages.push(currentPage);
+                    }
+                    
+                    // If no pages, create one empty page
+                    if (pages.length === 0) {
+                      pages.push({ rows: [], pageNumber: 1 });
+                    }
+                    
+                    const totalPages = pages.length;
+                    
+                    return (
                       <div style={{
-                        height: '1px',
-                        background: theme.colors.secondary[200],
-                        marginTop: theme.spacing[4],
-                        marginBottom: theme.spacing[4]
-                      }} />
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing[4] }}>
-                      {formFields.map(field => (
-                        <div key={field.id} style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          paddingBottom: theme.spacing[2],
-                          borderBottom: `1px solid ${theme.colors.secondary[200]}`
-                        }}>
-                          <span style={{
-                            fontWeight: theme.typography.fontWeight.medium,
-                            color: theme.colors.secondary[900]
+                        border: `1px solid ${theme.colors.secondary[200]}`,
+                        borderRadius: theme.borderRadius.lg,
+                        background: '#f8f8f8',
+                        padding: '20px',
+                        overflowY: 'auto',
+                        maxHeight: '80vh'
+                      }}>
+                        {pages.map((page, pageIndex) => (
+                          <div key={pageIndex} style={{
+                            background: 'white',
+                            width: '100%',
+                            maxWidth: '595px', // A4 width at 72 DPI
+                            margin: pageIndex > 0 ? '20px auto 0' : '0 auto',
+                            boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+                            height: '842px', // Fixed A4 height
+                            position: 'relative',
+                            pageBreakAfter: 'always'
                           }}>
-                            {field.label}:
-                          </span>
-                          <span style={{ color: theme.colors.secondary[600] }}>
-                            {formData[field.id] || '(Not filled)'}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                            <div style={{
+                              padding: '40px 30px',
+                              height: '100%',
+                              display: 'flex',
+                              flexDirection: 'column'
+                            }}>
+                              {/* Header only on first page */}
+                              {pageIndex === 0 && (
+                                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                                  <h3 style={{ 
+                                    margin: 0, 
+                                    fontSize: '18px',
+                                    fontWeight: 'bold',
+                                    color: '#333333',
+                                    marginBottom: '8px'
+                                  }}>
+                                    {formSettings.pdfHeader || 'Form Submission'}
+                                  </h3>
+                                  {formSettings.pdfSubheader && (
+                                    <p style={{ 
+                                      color: '#666666', 
+                                      margin: 0,
+                                      fontSize: '14px',
+                                      marginBottom: '6px'
+                                    }}>
+                                      {formSettings.pdfSubheader}
+                                    </p>
+                                  )}
+                                  <p style={{ 
+                                    color: '#999999', 
+                                    margin: 0,
+                                    fontSize: '11px' 
+                                  }}>
+                                    Date: {formSettings.pdfDate ? new Date(formSettings.pdfDate).toLocaleDateString() : new Date().toLocaleDateString()}
+                                  </p>
+                                  <div style={{
+                                    height: '1px',
+                                    background: '#cccccc',
+                                    marginTop: '10px',
+                                    marginBottom: '15px'
+                                  }} />
+                                </div>
+                              )}
+                              
+                              {/* Content */}
+                              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                {page.rows.map((row, rowIndex) => (
+                                  <div key={rowIndex} style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: row.columns === 1 ? '1fr' : row.columns === 2 ? '1fr 1fr' : '1fr 1fr 1fr',
+                                    gap: '25px',
+                                    marginBottom: '8px'
+                                  }}>
+                                    {(row.fields || []).map(field => {
+                                      // Skip layout fields in PDF preview
+                                      if (['heading1', 'heading2', 'paragraph', 'divider'].includes(field.type)) {
+                                        return null;
+                                      }
+                                      return (
+                                        <div key={field.id} style={{
+                                          display: 'flex',
+                                          flexDirection: 'column',
+                                          gap: '2px'
+                                        }}>
+                                          <span style={{
+                                            fontSize: '9px',
+                                            fontWeight: 'bold',
+                                            color: '#333333'
+                                          }}>
+                                            {field.label}:
+                                          </span>
+                                          <span style={{ 
+                                            fontSize: '9px',
+                                            color: '#666666',
+                                            wordBreak: 'break-word',
+                                            lineHeight: '1.3'
+                                          }}>
+                                            {field.type === 'signature' ? (
+                                              formData[field.id] && formData[field.id].startsWith('data:image') ? (
+                                                <img 
+                                                  src={formData[field.id]} 
+                                                  alt="Signature" 
+                                                  style={{ 
+                                                    maxWidth: '80px', 
+                                                    maxHeight: '40px',
+                                                    border: '1px solid #e0e0e0'
+                                                  }} 
+                                                />
+                                              ) : (
+                                                <span style={{ fontStyle: 'italic' }}>[Sign here] _____________________</span>
+                                              )
+                                            ) : field.type === 'checkbox' ? (
+                                              formData[field.id] ? '✓ Yes' : '✗ No'
+                                            ) : field.type === 'rating' ? (
+                                              formData[field.id] ? `${'★'.repeat(formData[field.id])}${'☆'.repeat(5-formData[field.id])} (${formData[field.id]}/5)` : '(Not rated)'
+                                            ) : (
+                                              formData[field.id] || '(Not filled)'
+                                            )}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                ))}
+                              </div>
+                              
+                              {/* Footer */}
+                              <div style={{
+                                position: 'absolute',
+                                bottom: '20px',
+                                left: '30px',
+                                right: '30px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                fontSize: '8px',
+                                color: '#999999'
+                              }}>
+                                <span>Page {page.pageNumber} of {totalPages}</span>
+                                {page.pageNumber > 1 && formSettings.pdfHeader && (
+                                  <span>{formSettings.pdfHeader}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </Card.Content>
               </Card>
               </Layout.Grid>

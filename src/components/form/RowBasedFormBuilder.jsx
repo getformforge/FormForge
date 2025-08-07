@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -424,9 +424,14 @@ const FieldCard = ({ field, width, onUpdate, onDelete }) => {
 };
 
 // Main Form Builder Component
-const RowBasedFormBuilder = ({ onFieldsChange, initialFields = [], formSettings, onSettingsChange, onShowTemplates }) => {
+const RowBasedFormBuilder = ({ onFieldsChange, initialFields = [], initialRows = [], formSettings, onSettingsChange, onShowTemplates }) => {
   const [rows, setRows] = useState(() => {
-    // Initialize rows from initialFields if they exist
+    // If we have initialRows structure, use that
+    if (initialRows && initialRows.length > 0) {
+      return initialRows;
+    }
+    
+    // Otherwise, try to build from initialFields
     if (initialFields.length > 0) {
       const rowsMap = new Map();
       let currentRowId = Date.now();
@@ -452,8 +457,16 @@ const RowBasedFormBuilder = ({ onFieldsChange, initialFields = [], formSettings,
   const [activeTab, setActiveTab] = useState('input');
   const [pdfHeader, setPdfHeader] = useState(formSettings?.pdfHeader || '');
   const [pdfSubheader, setPdfSubheader] = useState(formSettings?.pdfSubheader || '');
+  const [pdfDate, setPdfDate] = useState(formSettings?.pdfDate || new Date().toISOString().split('T')[0]);
   const [showSettings, setShowSettings] = useState(false);
   const [activeId, setActiveId] = useState(null);
+  
+  // Sync pdfDate when formSettings changes
+  useEffect(() => {
+    if (formSettings?.pdfDate) {
+      setPdfDate(formSettings.pdfDate);
+    }
+  }, [formSettings?.pdfDate]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -596,10 +609,14 @@ const RowBasedFormBuilder = ({ onFieldsChange, initialFields = [], formSettings,
 
   // Save PDF settings
   const savePdfSettings = () => {
-    onSettingsChange({
+    const settings = {
       pdfHeader,
-      pdfSubheader
-    });
+      pdfSubheader,
+      pdfDate
+    };
+    onSettingsChange(settings);
+    // Also save to sessionStorage
+    sessionStorage.setItem('formSettings', JSON.stringify(settings));
     setShowSettings(false);
   };
 
@@ -706,22 +723,71 @@ const RowBasedFormBuilder = ({ onFieldsChange, initialFields = [], formSettings,
                   }}
                 />
               </div>
-              <button
-                onClick={savePdfSettings}
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  background: '#3b82f6',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '14px',
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '13px',
                   fontWeight: '500',
-                  cursor: 'pointer'
-                }}
-              >
-                Save Settings
-              </button>
+                  color: '#374151',
+                  marginBottom: '6px'
+                }}>
+                  Form Date
+                </label>
+                <input
+                  type="date"
+                  value={pdfDate}
+                  onChange={(e) => {
+                    setPdfDate(e.target.value);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '6px',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={savePdfSettings}
+                  style={{
+                    flex: 1,
+                    padding: '8px',
+                    background: '#3b82f6',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Save Settings
+                </button>
+                <button
+                  onClick={() => {
+                    setPdfHeader('');
+                    setPdfSubheader('');
+                    setPdfDate(new Date().toISOString().split('T')[0]);
+                    const settings = { pdfHeader: '', pdfSubheader: '', pdfDate: new Date().toISOString().split('T')[0] };
+                    onSettingsChange(settings);
+                    sessionStorage.setItem('formSettings', JSON.stringify(settings));
+                  }}
+                  style={{
+                    padding: '8px',
+                    background: '#ef4444',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Clear
+                </button>
+              </div>
             </div>
           ) : (
             <>
@@ -809,25 +875,46 @@ const RowBasedFormBuilder = ({ onFieldsChange, initialFields = [], formSettings,
                 Build multi-column forms with flexible row layouts
               </p>
             </div>
-            <button
-              onClick={addRow}
-              style={{
-                padding: '8px 16px',
-                background: '#3b82f6',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <Plus size={16} />
-              Add Row
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={onShowTemplates}
+                style={{
+                  padding: '8px 16px',
+                  background: '#10b981',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <FileText size={16} />
+                Templates
+              </button>
+              <button
+                onClick={addRow}
+                style={{
+                  padding: '8px 16px',
+                  background: '#3b82f6',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Plus size={16} />
+                Add Row
+              </button>
+            </div>
           </div>
 
           <div style={{ 

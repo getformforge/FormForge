@@ -14,7 +14,21 @@
       "Bash(git remote remove:*)",
       "Bash(git add:*)",
       "Bash(npm install:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(taskkill:*)",
+      "WebFetch(domain:www.getformforge.com)",
+      "Bash(find:*)",
+      "Bash(rm:*)",
+      "Bash(firebase login:*)",
+      "Bash(firebase projects:list:*)",
+      "Bash(firebase deploy:*)",
+      "Bash(git reset:*)",
+      "Bash(ls:*)",
+      "Bash(dir:*)",
+      "Bash(firebase hosting:disable:*)",
+      "Bash(firebase hosting:enable:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(mv:*)"
     ],
     "deny": []
   }
