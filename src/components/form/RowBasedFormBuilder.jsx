@@ -115,7 +115,7 @@ const DraggableFieldType = ({ fieldType }) => {
 };
 
 // Row component that can contain 1-3 columns
-const FormRow = ({ row, rowIndex, onUpdateRow, onDeleteRow, onUpdateField, onDeleteField }) => {
+const FormRow = ({ row, rowIndex, allRows, onUpdateRow, onDeleteRow, onUpdateField, onDeleteField }) => {
   const [columns, setColumns] = useState(row.columns || 1);
   const { isOver, setNodeRef } = useDroppable({
     id: `row-${rowIndex}`,
@@ -304,7 +304,7 @@ const FormRow = ({ row, rowIndex, onUpdateRow, onDeleteRow, onUpdateField, onDel
               key={field.id}
               field={field}
               width={getFieldWidth()}
-              allFields={rows.flatMap(r => r.fields || []).filter(Boolean)}
+              allFields={allRows.flatMap(r => r.fields || []).filter(Boolean)}
               onUpdate={(updates) => onUpdateField(rowIndex, fieldIndex, updates)}
               onDelete={() => onDeleteField(rowIndex, fieldIndex)}
             />
@@ -1069,6 +1069,7 @@ const RowBasedFormBuilder = ({ onFieldsChange, initialFields = [], initialRows =
                   key={row.id}
                   row={row}
                   rowIndex={index}
+                  allRows={rows}
                   onUpdateRow={updateRow}
                   onDeleteRow={deleteRow}
                   onUpdateField={updateField}
