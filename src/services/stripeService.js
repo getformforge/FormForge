@@ -54,22 +54,33 @@ export const createCustomerPortalSession = async () => {
  */
 export const openCustomerPortal = async () => {
   try {
+    console.log('Starting customer portal session creation...');
     const { url } = await createCustomerPortalSession();
     
+    if (!url) {
+      throw new Error('No portal URL received from server');
+    }
+    
+    console.log('Portal URL received, opening...');
     // Open in new tab
     window.open(url, '_blank');
     
     return true;
   } catch (error) {
     console.error('Error opening customer portal:', error);
+    console.error('Full error details:', error.message, error.stack);
     
     // Return user-friendly error message
     if (error.message.includes('No subscription found')) {
       throw new Error('No active subscription found. Please subscribe to a plan first.');
     } else if (error.message.includes('not authenticated')) {
       throw new Error('Please sign in to manage your subscription.');
+    } else if (error.message.includes('Failed to fetch')) {
+      throw new Error('Cannot connect to subscription service. The API may not be deployed. Please contact support.');
+    } else if (error.message.includes('Invalid response from server')) {
+      throw new Error('The subscription management service is not properly configured. Please contact support.');
     } else {
-      throw new Error('Unable to open subscription management. Please try again later.');
+      throw new Error(`Unable to open subscription management: ${error.message}`);
     }
   }
 };

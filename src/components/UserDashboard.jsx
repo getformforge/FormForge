@@ -44,7 +44,27 @@ const UserDashboard = ({ onClose }) => {
       // Portal opens in new tab, so we just reset the loading state
       setTimeout(() => setManagingSubscription(false), 2000);
     } catch (error) {
-      alert(error.message || 'Unable to open subscription management');
+      console.error('Portal error:', error);
+      
+      // Fallback: Provide direct email support for subscription management
+      const fallbackMessage = `
+⚠️ The automated subscription portal is temporarily unavailable.
+
+To manage your subscription, please:
+1. Email: support@getformforge.com
+2. Include your account email: ${currentUser?.email}
+3. Specify if you want to cancel, update payment, or change plans
+
+We'll process your request within 24 hours.
+
+Alternatively, you can manage your subscription directly in Stripe:
+https://billing.stripe.com/p/login/6oE3fngUB0zt82I000
+      `;
+      
+      if (window.confirm(fallbackMessage + '\n\nWould you like to open Stripe billing portal directly?')) {
+        window.open('https://billing.stripe.com/p/login/6oE3fngUB0zt82I000', '_blank');
+      }
+      
       setManagingSubscription(false);
     }
   };
