@@ -1696,39 +1696,84 @@ const FormPDFApp = () => {
               <div style={styles.buttonGroup}>
                 <button
                   onClick={() => setShowTemplates(true)}
-                  style={styles.iconButton}
-                  title="Browse Templates"
+                  style={{
+                    ...styles.button,
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    background: 'linear-gradient(45deg, #8b5cf6, #7c3aed)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                  title="Browse pre-built templates"
                 >
-                  <Layout size={20} />
+                  <Layout size={18} />
+                  Templates
                 </button>
                 <button
                   onClick={() => setShowSaveDialog(true)}
-                  style={styles.iconButton}
-                  title="Save Template"
+                  style={{
+                    ...styles.button,
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    background: 'linear-gradient(45deg, #10b981, #059669)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                  title="Save current form as template"
                 >
-                  <Save size={20} />
+                  <Save size={18} />
+                  Save Form
                 </button>
                 <button
                   onClick={() => setShowLoadDialog(true)}
-                  style={styles.iconButton}
-                  title="Load Template"
+                  style={{
+                    ...styles.button,
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    background: 'linear-gradient(45deg, #3b82f6, #2563eb)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                  title="Load a saved form"
                 >
-                  <FolderOpen size={20} />
+                  <FolderOpen size={18} />
+                  Load Form
                 </button>
                 <button
                   onClick={publishForm}
-                  style={styles.iconButton}
-                  title="Share Form"
+                  style={{
+                    ...styles.button,
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    background: 'linear-gradient(45deg, #ff6b35, #e63946)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                  title="Share form with others"
                 >
-                  <Share size={20} />
+                  <Share size={18} />
+                  Share
                 </button>
                 {currentFormId && (
                   <button
                     onClick={loadSubmissions}
-                    style={styles.iconButton}
-                    title="View Submissions"
+                    style={{
+                      ...styles.button,
+                      padding: '8px 16px',
+                      fontSize: '14px',
+                      background: 'linear-gradient(45deg, #f59e0b, #d97706)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                    title="View form submissions"
                   >
-                    <BarChart3 size={20} />
+                    <BarChart3 size={18} />
+                    Submissions
                   </button>
                 )}
                 <button
@@ -1741,6 +1786,25 @@ const FormPDFApp = () => {
             </div>
 
             {/* Usage limits now shown in user dropdown for cleaner UI */}
+
+            {/* Feature Helper */}
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
+              border: '1px solid rgba(139, 92, 246, 0.3)',
+              borderRadius: '12px',
+              padding: '16px',
+              marginBottom: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <Sparkles size={20} style={{ color: '#8b5cf6', flexShrink: 0 }} />
+              <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.9)' }}>
+                <strong>Pro Tip:</strong> Save your forms as templates to reuse them later. 
+                Load saved forms or duplicate existing ones to save time. 
+                Share forms to collect responses from others!
+              </div>
+            </div>
 
             {!isPreview ? (
               <>
