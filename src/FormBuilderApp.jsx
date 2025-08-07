@@ -565,18 +565,20 @@ const FormBuilderApp = () => {
       // Process form fields by rows for multi-column layout
       // Apply conditional logic to filter visible fields for PDF
       const rows = getFieldRows(true);
+      
+      // Constants for consistent spacing (match preview)
+      const ROW_SPACING = 20; // Space between rows
+      const FIELD_LABEL_HEIGHT = 5; // Height for field label
+      const FIELD_VALUE_HEIGHT = 12; // Height for field value
+      const FIELD_TOTAL_HEIGHT = FIELD_LABEL_HEIGHT + FIELD_VALUE_HEIGHT + 8; // Total height per field
+      
       rows.forEach((row) => {
-        // Check if we need a new page before adding content (only if we have substantial content left)
-        if (currentY > pageHeight - 50 && row.fields && row.fields.length > 0) {
-          // Check if this is just trailing space - don't create new page for minimal content
-          const remainingHeight = pageHeight - currentY;
-          const estimatedRowHeight = 30; // Estimate height needed for a typical row
-          
-          if (remainingHeight < estimatedRowHeight) {
-            pdf.addPage();
-            pageNumber++;
-            currentY = 30;
-          }
+        // Check if we need a new page (use same logic as preview)
+        const estimatedHeight = FIELD_TOTAL_HEIGHT;
+        if (currentY + estimatedHeight > pageHeight - 40) {
+          pdf.addPage();
+          pageNumber++;
+          currentY = 30;
         }
         
         // Calculate column width
@@ -628,12 +630,15 @@ const FormBuilderApp = () => {
           } else if (field.label) {
             // Regular form fields - position based on column
             const xPos = margin + (colIndex * columnWidth);
+            const fieldStartY = currentY;
             
+            // Draw label
             pdf.setFontSize(9);
             pdf.setFont('helvetica', 'bold');
             pdf.setTextColor(51, 51, 51);
-            pdf.text(`${field.label}:`, xPos, currentY);
+            pdf.text(`${field.label}:`, xPos, fieldStartY);
             
+            // Draw value below label (consistent spacing)
             pdf.setFontSize(9);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(102, 102, 102);
@@ -654,14 +659,14 @@ const FormBuilderApp = () => {
               value = value ? `${'★'.repeat(value)}${'☆'.repeat(5-value)} (${value}/5)` : '(Not rated)';
             } else if (field.type === 'signature') {
               if (value && value.startsWith('data:image')) {
-                // Add signature image
+                // Add signature image with consistent sizing
                 try {
-                  const imgWidth = 60;
-                  const imgHeight = 30;
-                  pdf.addImage(value, 'PNG', xPos, currentY + 10, imgWidth, imgHeight);
-                  // Adjust field height to account for image
-                  const fieldHeight = 10 + imgHeight + 10;
-                  maxHeight = Math.max(maxHeight, fieldHeight);
+                  const imgWidth = 80;
+                  const imgHeight = 40;
+                  const valueY = fieldStartY + FIELD_LABEL_HEIGHT + 3;
+                  pdf.addImage(value, 'PNG', xPos, valueY, imgWidth, imgHeight);
+                  // Use consistent height
+                  maxHeight = FIELD_TOTAL_HEIGHT + 30; // Extra space for signature
                   value = ''; // Don't add text since we added the image
                 } catch (e) {
                   console.error('Error adding signature image:', e);
@@ -676,23 +681,28 @@ const FormBuilderApp = () => {
             
             // Only add text if we have a value (skip for signature images)
             if (value) {
-              const maxTextWidth = columnWidth - columnSpacing;
+              const maxTextWidth = columnWidth - 15; // Leave some padding
               const valueText = String(value);
               const lines = pdf.splitTextToSize(valueText, maxTextWidth);
               
-              lines.forEach((line, idx) => {
-                pdf.text(line, xPos, currentY + 8 + (idx * 4));
-              });
+              // Position value consistently below label
+              const valueY = fieldStartY + FIELD_LABEL_HEIGHT + 3;
               
-              const fieldHeight = 8 + (lines.length * 4) + 8;
-              maxHeight = Math.max(maxHeight, fieldHeight);
+              // Only show first 2 lines to prevent overflow
+              const linesToShow = Math.min(lines.length, 2);
+              for (let i = 0; i < linesToShow; i++) {
+                pdf.text(lines[i], xPos, valueY + (i * 4));
+              }
+              
+              // Use consistent field height regardless of content
+              maxHeight = FIELD_TOTAL_HEIGHT;
             }
           }
         });
         
-        // Move Y position by the maximum height of the row
+        // Move Y position by consistent amount (match preview spacing)
         if (maxHeight > 0) {
-          currentY += maxHeight;
+          currentY += maxHeight + ROW_SPACING;
         }
       });
       
@@ -1302,7 +1312,13 @@ const FormBuilderApp = () => {
                     const FOOTER_HEIGHT = 40; // Footer space
                     const MARGIN_TOP = 40;
                     const MARGIN_BOTTOM = 40;
-                    const ROW_HEIGHT = 35; // Approximate height per field row
+                    
+                    // Use same constants as PDF generation
+                    const ROW_SPACING = 20;
+                    const FIELD_LABEL_HEIGHT = 5;
+                    const FIELD_VALUE_HEIGHT = 12;
+                    const FIELD_TOTAL_HEIGHT = FIELD_LABEL_HEIGHT + FIELD_VALUE_HEIGHT + 8;
+                    
                     const USABLE_HEIGHT = A4_HEIGHT - MARGIN_TOP - MARGIN_BOTTOM - FOOTER_HEIGHT;
                     const FIRST_PAGE_USABLE = USABLE_HEIGHT - HEADER_HEIGHT;
                     
@@ -1313,10 +1329,9 @@ const FormBuilderApp = () => {
                     const fieldRows = getFieldRows(true); // Apply conditional logic for preview
                     
                     fieldRows.forEach((row, index) => {
-                      // Calculate more accurate row height based on field types
-                      let estimatedHeight = 0;
+                      // Calculate row height using same logic as PDF generation
+                      let estimatedHeight = FIELD_TOTAL_HEIGHT;
                       
-                      // Calculate height more accurately based on actual PDF generation logic
                       if (row.fields && row.fields.length > 0) {
                         // Check for layout fields first (they have specific heights)
                         const layoutField = row.fields.find(f => ['heading1', 'heading2', 'paragraph', 'divider'].includes(f.type));
@@ -1334,26 +1349,14 @@ const FormBuilderApp = () => {
                             estimatedHeight = 8;
                           }
                         } else {
-                          // Regular form fields
-                          let maxFieldHeight = 0;
-                          row.fields.forEach(field => {
-                            if (field.type === 'signature') {
-                              // Signature takes 30px image + padding
-                              maxFieldHeight = Math.max(maxFieldHeight, 50);
-                            } else if (field.type === 'textarea') {
-                              // Textareas might have multiple lines
-                              maxFieldHeight = Math.max(maxFieldHeight, 24);
-                            } else {
-                              // Standard fields (label + value + padding)
-                              maxFieldHeight = Math.max(maxFieldHeight, 24);
-                            }
-                          });
-                          estimatedHeight = maxFieldHeight;
+                          // Regular form fields - use consistent heights
+                          const hasSignature = row.fields.some(f => f.type === 'signature');
+                          if (hasSignature) {
+                            estimatedHeight = FIELD_TOTAL_HEIGHT + 30; // Extra space for signature
+                          } else {
+                            estimatedHeight = FIELD_TOTAL_HEIGHT;
+                          }
                         }
-                      }
-                      
-                      if (estimatedHeight === 0) {
-                        estimatedHeight = 24; // Default height
                       }
                       
                       const maxHeight = currentPage.pageNumber === 1 ? FIRST_PAGE_USABLE : USABLE_HEIGHT;
@@ -1366,7 +1369,7 @@ const FormBuilderApp = () => {
                       }
                       
                       currentPage.rows.push(row);
-                      currentHeight += estimatedHeight;
+                      currentHeight += estimatedHeight + ROW_SPACING; // Add row spacing like in PDF
                     });
                     
                     // Add last page
