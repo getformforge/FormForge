@@ -3,7 +3,7 @@
 
 import Stripe from 'stripe';
 import { buffer } from 'micro';
-import { adminDb } from './lib/firebase-admin.js';
+import admin, { adminDb } from './lib/firebase-admin.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
