@@ -233,24 +233,69 @@ const FormRow = ({ row, rowIndex, onUpdateRow, onDeleteRow, onUpdateField, onDel
           display: 'grid',
           gridTemplateColumns: columns === 1 ? '1fr' : columns === 2 ? '1fr 1fr' : '1fr 1fr 1fr',
           gap: '16px',
-          minHeight: '60px',
+          minHeight: '80px',
           padding: '8px',
           background: isOver ? '#eff6ff' : '#ffffff',
           borderRadius: '8px',
           border: isOver ? '2px dashed #3b82f6' : '1px dashed #d1d5db',
-          transition: 'all 0.2s'
+          transition: 'all 0.2s',
+          position: 'relative'
         }}
       >
         {row.fields.length === 0 ? (
-          <div style={{
-            width: '100%',
-            textAlign: 'center',
-            color: '#9ca3af',
-            fontSize: '14px',
-            padding: '20px'
-          }}>
-            Drag fields here ({columns} column{columns > 1 ? 's' : ''} layout)
-          </div>
+          <>
+            {/* Show column dividers for multi-column layouts */}
+            {columns > 1 && (
+              <div style={{
+                position: 'absolute',
+                top: '8px',
+                bottom: '8px',
+                left: columns === 2 ? '50%' : '33.33%',
+                width: '1px',
+                background: 'linear-gradient(to bottom, transparent 0%, #e5e7eb 20%, #e5e7eb 80%, transparent 100%)',
+                pointerEvents: 'none',
+                zIndex: 0
+              }} />
+            )}
+            {columns === 3 && (
+              <div style={{
+                position: 'absolute',
+                top: '8px',
+                bottom: '8px',
+                left: '66.66%',
+                width: '1px',
+                background: 'linear-gradient(to bottom, transparent 0%, #e5e7eb 20%, #e5e7eb 80%, transparent 100%)',
+                pointerEvents: 'none',
+                zIndex: 0
+              }} />
+            )}
+            
+            {/* Column placeholders */}
+            {Array.from({ length: columns }, (_, colIndex) => (
+              <div 
+                key={colIndex}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minHeight: '60px',
+                  color: '#9ca3af',
+                  fontSize: '13px',
+                  textAlign: 'center',
+                  padding: '12px',
+                  borderRadius: '4px',
+                  background: 'rgba(249, 250, 251, 0.5)',
+                  border: '1px dashed transparent',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '12px', marginBottom: '4px' }}>Column {colIndex + 1}</div>
+                  <div style={{ fontSize: '11px', opacity: 0.7 }}>Drag field here</div>
+                </div>
+              </div>
+            ))}
+          </>
         ) : (
           row.fields.map((field, fieldIndex) => (
             <FieldCard
