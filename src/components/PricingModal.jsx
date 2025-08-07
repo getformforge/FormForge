@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Crown, Zap, Star, Check, X, Sparkles } from 'lucide-react';
+import { theme } from '../styles/theme';
 import StripeCheckout from './StripeCheckout';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -97,7 +98,7 @@ const PricingModal = ({ onClose, onSuccess }) => {
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.9)',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',

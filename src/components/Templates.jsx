@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FileText, Star, Users, Clock, ArrowRight, Search } from 'lucide-react';
+import { FileText, Star, Users, Clock, ArrowRight, Search, X } from 'lucide-react';
+import { theme } from '../styles/theme';
 import { templates, templateCategories, popularTemplates } from '../templates';
 
 const Templates = ({ onSelectTemplate, onClose }) => {
@@ -32,7 +33,7 @@ const Templates = ({ onSelectTemplate, onClose }) => {
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -41,11 +42,10 @@ const Templates = ({ onSelectTemplate, onClose }) => {
       padding: '20px'
     },
     container: {
-      background: 'linear-gradient(135deg, rgba(45, 45, 45, 0.98), rgba(30, 30, 30, 0.98))',
-      backdropFilter: 'blur(20px)',
-      borderRadius: '20px',
-      boxShadow: '0 30px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255, 107, 53, 0.2)',
-      border: '2px solid rgba(255, 107, 53, 0.3)',
+      background: '#ffffff',
+      borderRadius: theme.borderRadius.xl,
+      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+      border: `1px solid ${theme.colors.secondary[200]}`,
       padding: '40px',
       width: '100%',
       maxWidth: '1200px',
@@ -57,19 +57,18 @@ const Templates = ({ onSelectTemplate, onClose }) => {
       marginBottom: '40px'
     },
     title: {
-      fontSize: '2.5rem',
-      fontWeight: '900',
-      background: 'linear-gradient(45deg, #ff6b35, #ffaa00)',
+      fontSize: theme.typography.fontSize['4xl'],
+      fontWeight: theme.typography.fontWeight.black,
+      background: theme.gradients.primary,
       WebkitBackgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
       backgroundClip: 'text',
-      marginBottom: '12px',
-      fontFamily: 'Inter, sans-serif'
+      marginBottom: theme.spacing[3]
     },
     subtitle: {
-      color: 'rgba(255,255,255,0.8)',
-      fontSize: '18px',
-      fontWeight: '500'
+      color: theme.colors.secondary[600],
+      fontSize: theme.typography.fontSize.lg,
+      fontWeight: theme.typography.fontWeight.medium
     },
     searchBar: {
       width: '100%',
@@ -80,10 +79,10 @@ const Templates = ({ onSelectTemplate, onClose }) => {
     searchInput: {
       width: '100%',
       padding: '16px 20px 16px 50px',
-      background: 'rgba(255, 255, 255, 0.1)',
-      border: '2px solid rgba(255, 107, 53, 0.3)',
-      borderRadius: '12px',
-      color: '#ffffff',
+      background: theme.colors.secondary[50],
+      border: `2px solid ${theme.colors.secondary[200]}`,
+      borderRadius: theme.borderRadius.lg,
+      color: theme.colors.secondary[900],
       fontSize: '16px',
       outline: 'none'
     },
@@ -92,7 +91,7 @@ const Templates = ({ onSelectTemplate, onClose }) => {
       left: '16px',
       top: '50%',
       transform: 'translateY(-50%)',
-      color: 'rgba(255, 107, 53, 0.7)'
+      color: theme.colors.primary[500]
     },
     categories: {
       display: 'flex',
@@ -104,9 +103,9 @@ const Templates = ({ onSelectTemplate, onClose }) => {
     categoryButton: (active) => ({
       padding: '12px 24px',
       borderRadius: '25px',
-      border: active ? '2px solid #ff6b35' : '2px solid rgba(255, 255, 255, 0.2)',
-      background: active ? 'rgba(255, 107, 53, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-      color: active ? '#ff6b35' : 'rgba(255,255,255,0.8)',
+      border: active ? `2px solid ${theme.colors.primary[500]}` : `2px solid ${theme.colors.secondary[200]}`,
+      background: active ? theme.colors.primary[50] : theme.colors.secondary[50],
+      color: active ? theme.colors.primary[600] : theme.colors.secondary[600],
       cursor: 'pointer',
       fontSize: '14px',
       fontWeight: '600',
@@ -118,7 +117,7 @@ const Templates = ({ onSelectTemplate, onClose }) => {
     sectionTitle: {
       fontSize: '1.5rem',
       fontWeight: '700',
-      color: '#ffffff',
+      color: theme.colors.secondary[900],
       marginBottom: '20px',
       display: 'flex',
       alignItems: 'center',
@@ -130,8 +129,8 @@ const Templates = ({ onSelectTemplate, onClose }) => {
       gap: '24px'
     },
     templateCard: {
-      background: 'rgba(255, 255, 255, 0.08)',
-      border: '1px solid rgba(255, 107, 53, 0.2)',
+      background: theme.colors.secondary[50],
+      border: `1px solid ${theme.colors.secondary[200]}`,
       borderRadius: '16px',
       padding: '24px',
       cursor: 'pointer',
@@ -148,7 +147,7 @@ const Templates = ({ onSelectTemplate, onClose }) => {
       width: '40px',
       height: '40px',
       borderRadius: '8px',
-      background: 'linear-gradient(45deg, #ff6b35, #ffaa00)',
+      background: theme.gradients.primary,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -157,19 +156,19 @@ const Templates = ({ onSelectTemplate, onClose }) => {
     templateName: {
       fontSize: '18px',
       fontWeight: '700',
-      color: '#ffffff',
+      color: theme.colors.secondary[900],
       flex: 1
     },
     templateCategory: {
       fontSize: '12px',
       padding: '4px 8px',
       borderRadius: '12px',
-      background: 'rgba(255, 107, 53, 0.2)',
-      color: '#ff6b35',
+      background: theme.colors.primary[50],
+      color: theme.colors.primary[600],
       fontWeight: '600'
     },
     templateDescription: {
-      color: 'rgba(255,255,255,0.7)',
+      color: theme.colors.secondary[600],
       fontSize: '14px',
       marginBottom: '16px',
       lineHeight: '1.5'
@@ -184,12 +183,12 @@ const Templates = ({ onSelectTemplate, onClose }) => {
       alignItems: 'center',
       gap: '4px',
       fontSize: '12px',
-      color: 'rgba(255,255,255,0.6)'
+      color: theme.colors.secondary[500]
     },
     useButton: {
       width: '100%',
       padding: '12px',
-      background: 'linear-gradient(45deg, #ff6b35, #e63946)',
+      background: theme.gradients.primary,
       color: 'white',
       border: 'none',
       borderRadius: '8px',
@@ -206,7 +205,7 @@ const Templates = ({ onSelectTemplate, onClose }) => {
       position: 'absolute',
       top: '20px',
       right: '20px',
-      background: 'rgba(255, 255, 255, 0.1)',
+      background: theme.colors.secondary[100],
       border: 'none',
       borderRadius: '50%',
       width: '40px',
@@ -223,7 +222,7 @@ const Templates = ({ onSelectTemplate, onClose }) => {
     <div style={styles.overlay} onClick={onClose}>
       <div style={styles.container} onClick={(e) => e.stopPropagation()}>
         <button onClick={onClose} style={styles.closeButton}>
-          ×
+          <X size={20} />
         </button>
         
         <div style={styles.header}>

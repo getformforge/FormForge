@@ -24,7 +24,7 @@ const InvoiceGenerator = ({ onStartInvoice }) => {
   const styles = {
     container: {
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: theme.gradients.primary,
       padding: '0'
     },
     hero: {
@@ -47,7 +47,7 @@ const InvoiceGenerator = ({ onStartInvoice }) => {
     },
     ctaButton: {
       padding: '18px 40px',
-      background: '#ff6b35',
+      background: theme.colors.primary[500],
       color: 'white',
       border: 'none',
       borderRadius: '12px',
@@ -57,7 +57,7 @@ const InvoiceGenerator = ({ onStartInvoice }) => {
       display: 'inline-flex',
       alignItems: 'center',
       gap: '12px',
-      boxShadow: '0 8px 25px rgba(255, 107, 53, 0.4)',
+      boxShadow: `0 8px 25px ${theme.colors.primary[500]}40`,
       transition: 'all 0.3s ease'
     },
     features: {
@@ -83,7 +83,7 @@ const InvoiceGenerator = ({ onStartInvoice }) => {
       width: '60px',
       height: '60px',
       borderRadius: '50%',
-      background: 'linear-gradient(45deg, #ff6b35, #ffaa00)',
+      background: theme.gradients.primary,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -172,7 +172,7 @@ const InvoiceGenerator = ({ onStartInvoice }) => {
       top: '-15px',
       left: '50%',
       transform: 'translateX(-50%)',
-      background: '#ff6b35',
+      background: theme.colors.primary[500],
       color: 'white',
       padding: '8px 24px',
       borderRadius: '20px',

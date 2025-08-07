@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, CheckCircle, FileText, Download, Users, Star, Zap, Shield, Clock, Target } from 'lucide-react';
+import { ArrowRight, CheckCircle, FileText, Download, Users, Star, Zap, Shield, Clock, Target, Layers, GitBranch, Save } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
@@ -51,6 +51,21 @@ const HomePage = ({ onNavigate }) => {
 
   const features = [
     {
+      icon: <Layers size={24} />,
+      title: 'Multi-Column Form Builder',
+      description: 'Create professional layouts with our drag-and-drop builder. Design forms with 1, 2, or 3 column layouts. Add headings, dividers, and organize fields into logical sections.'
+    },
+    {
+      icon: <GitBranch size={24} />,
+      title: 'Smart Conditional Logic',
+      description: 'Build dynamic forms that adapt to user input. Show or hide fields based on responses. Create intelligent workflows that guide users through complex processes.'
+    },
+    {
+      icon: <Save size={24} />,
+      title: 'Save, Load & Reuse Forms',
+      description: 'Save your forms as templates for future use. Load and duplicate existing forms with one click. Build your library of reusable form templates.'
+    },
+    {
       icon: <Shield size={24} />,
       title: 'Enterprise Security',
       description: 'End-to-end encryption, Firebase Authentication, and secure data transmission. Your sensitive documents are protected with bank-level security.'
@@ -58,17 +73,12 @@ const HomePage = ({ onNavigate }) => {
     {
       icon: <Users size={24} />,
       title: 'Share & Collect',
-      description: 'Share forms with clients, employees, or partners. Collect responses automatically and export to CSV. No more email back-and-forth.'
+      description: 'Share forms with unique URLs. Collect responses automatically. Track submissions in real-time. Export data when you need it.'
     },
     {
       icon: <FileText size={24} />,
       title: 'Professional PDFs',
-      description: 'Generate branded, professional PDF documents instantly. Perfect for contracts, invoices, medical forms, and legal documents.'
-    },
-    {
-      icon: <Zap size={24} />,
-      title: 'Complete Workflow',
-      description: 'Create forms → Share securely → Collect responses → Generate PDFs → Analyze data. Everything you need in one platform.'
+      description: 'Generate filled or blank PDF templates instantly. Add custom headers and branding. Perfect for contracts, invoices, and official documents.'
     }
   ];
 
@@ -96,7 +106,7 @@ const HomePage = ({ onNavigate }) => {
       title: 'Medical Forms',
       description: 'Secure patient intake and medical forms',
       icon: '🏥',
-      color: 'linear-gradient(45deg, #3b82f6, #1d4ed8)',
+      color: theme.gradients.info,
       popular: false,
       action: () => onNavigate('medical')
     },
@@ -105,7 +115,7 @@ const HomePage = ({ onNavigate }) => {
       title: 'Rental Agreements',
       description: 'Professional lease agreements for landlords',
       icon: '🏠',
-      color: 'linear-gradient(45deg, #8b5cf6, #7c3aed)',
+      color: theme.gradients.warning,
       popular: false,
       action: () => onNavigate('rental')
     },
@@ -114,7 +124,7 @@ const HomePage = ({ onNavigate }) => {
       title: 'NDAs & Legal',
       description: 'Non-disclosure and confidentiality agreements',
       icon: '🔒',
-      color: 'linear-gradient(45deg, #f59e0b, #d97706)',
+      color: theme.gradients.danger,
       popular: false,
       action: () => onNavigate('nda')
     },
@@ -205,7 +215,7 @@ const HomePage = ({ onNavigate }) => {
             <div style={{
               fontSize: theme.typography.fontSize['6xl'],
               fontWeight: theme.typography.fontWeight.black,
-              background: 'linear-gradient(45deg, #ff6b35, #ffaa00, #ff6b35)',
+              background: theme.gradients.primary,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
@@ -301,7 +311,7 @@ const HomePage = ({ onNavigate }) => {
               maxWidth: '600px',
               margin: '0 auto'
             }}>
-              Browse our professionally designed templates. Use "Choose Your Template" above to get started.
+              Start with a professionally designed template or build your own custom form from scratch.
             </p>
           </div>
 
@@ -358,13 +368,6 @@ const HomePage = ({ onNavigate }) => {
                   {template.description}
                 </p>
                 
-                <div style={{
-                  fontSize: theme.typography.fontSize.sm,
-                  color: theme.colors.secondary[500],
-                  fontStyle: 'italic'
-                }}>
-                  Click "Templates" above to use this template
-                </div>
               </Card>
             ))}
           </Layout.Grid>
@@ -373,7 +376,7 @@ const HomePage = ({ onNavigate }) => {
 
       {/* Security Section */}
       <Layout.Section padding="lg" style={{ 
-        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)', 
+        background: theme.gradients.light, 
         borderTop: '1px solid rgba(226, 232, 240, 0.8)',
         borderBottom: '1px solid rgba(226, 232, 240, 0.8)'
       }}>
@@ -418,7 +421,7 @@ const HomePage = ({ onNavigate }) => {
                 width: '60px',
                 height: '60px',
                 borderRadius: theme.borderRadius.xl,
-                background: 'linear-gradient(45deg, #059669, #10b981)',
+                background: theme.gradients.success,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -458,7 +461,7 @@ const HomePage = ({ onNavigate }) => {
                 width: '60px',
                 height: '60px',
                 borderRadius: theme.borderRadius.xl,
-                background: 'linear-gradient(45deg, #3b82f6, #1d4ed8)',
+                background: theme.gradients.info,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

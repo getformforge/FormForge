@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { User, LogOut, Crown, BarChart3, FileText, Mail, Calendar, CreditCard, TrendingUp, AlertTriangle } from 'lucide-react';
+import { User, LogOut, Crown, BarChart3, FileText, Mail, Calendar, CreditCard, TrendingUp, AlertTriangle, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { theme } from '../styles/theme';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import SubmissionsDashboard from './SubmissionsDashboard';
@@ -64,7 +65,7 @@ const UserDashboard = ({ onClose }) => {
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -72,11 +73,10 @@ const UserDashboard = ({ onClose }) => {
       backdropFilter: 'blur(8px)'
     },
     container: {
-      background: 'linear-gradient(135deg, rgba(45, 45, 45, 0.98), rgba(30, 30, 30, 0.98))',
-      backdropFilter: 'blur(20px)',
-      borderRadius: '20px',
-      boxShadow: '0 30px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255, 107, 53, 0.2)',
-      border: '2px solid rgba(255, 107, 53, 0.3)',
+      background: '#ffffff',
+      borderRadius: theme.borderRadius.xl,
+      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+      border: `1px solid ${theme.colors.secondary[200]}`,
       padding: '40px',
       width: '100%',
       maxWidth: '600px',
@@ -100,7 +100,7 @@ const UserDashboard = ({ onClose }) => {
       width: '64px',
       height: '64px',
       borderRadius: '50%',
-      background: 'linear-gradient(45deg, #ff6b35, #ffaa00)',
+      background: theme.gradients.primary,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -116,11 +116,11 @@ const UserDashboard = ({ onClose }) => {
     userName: {
       fontSize: '24px',
       fontWeight: '700',
-      color: '#ffffff'
+      color: theme.colors.secondary[900]
     },
     userEmail: {
       fontSize: '14px',
-      color: 'rgba(255,255,255,0.7)'
+      color: theme.colors.secondary[600]
     },
     planBadge: {
       display: 'flex',
@@ -140,7 +140,7 @@ const UserDashboard = ({ onClose }) => {
       background: 'rgba(239, 68, 68, 0.2)',
       border: '2px solid rgba(239, 68, 68, 0.4)',
       borderRadius: '10px',
-      color: '#ef4444',
+      color: theme.colors.error[500],
       cursor: 'pointer',
       display: 'flex',
       alignItems: 'center',
@@ -175,12 +175,12 @@ const UserDashboard = ({ onClose }) => {
     statValue: {
       fontSize: '28px',
       fontWeight: '900',
-      color: '#ff6b35',
+      color: theme.colors.primary[500],
       marginBottom: '4px'
     },
     statLabel: {
       fontSize: '14px',
-      color: 'rgba(255,255,255,0.7)',
+      color: theme.colors.secondary[600],
       fontWeight: '500'
     },
     planSection: {
@@ -193,7 +193,7 @@ const UserDashboard = ({ onClose }) => {
     planTitle: {
       fontSize: '18px',
       fontWeight: '700',
-      color: '#ffffff',
+      color: theme.colors.secondary[900],
       marginBottom: '16px',
       display: 'flex',
       alignItems: 'center',
@@ -210,7 +210,7 @@ const UserDashboard = ({ onClose }) => {
     },
     planDetailLabel: {
       fontSize: '12px',
-      color: 'rgba(255,255,255,0.6)',
+      color: theme.colors.secondary[500],
       marginBottom: '4px',
       textTransform: 'uppercase',
       fontWeight: '600'
@@ -218,12 +218,12 @@ const UserDashboard = ({ onClose }) => {
     planDetailValue: {
       fontSize: '16px',
       fontWeight: '700',
-      color: '#ffffff'
+      color: theme.colors.secondary[900]
     },
     upgradeButton: {
       width: '100%',
       padding: '16px',
-      background: 'linear-gradient(45deg, #ff6b35, #e63946)',
+      background: theme.gradients.primary,
       color: 'white',
       border: 'none',
       borderRadius: '10px',
@@ -236,7 +236,7 @@ const UserDashboard = ({ onClose }) => {
     },
     memberSince: {
       textAlign: 'center',
-      color: 'rgba(255,255,255,0.6)',
+      color: theme.colors.secondary[500],
       fontSize: '14px',
       display: 'flex',
       alignItems: 'center',
@@ -249,7 +249,7 @@ const UserDashboard = ({ onClose }) => {
     return (
       <div style={styles.overlay}>
         <div style={styles.container}>
-          <div style={{ textAlign: 'center', color: '#ffffff', fontSize: '18px' }}>
+          <div style={{ textAlign: 'center', color: theme.colors.secondary[600], fontSize: '18px' }}>
             Loading dashboard...
           </div>
         </div>
@@ -363,7 +363,7 @@ const UserDashboard = ({ onClose }) => {
             <div style={{
               fontSize: '14px',
               fontWeight: '600',
-              color: 'rgba(255,255,255,0.8)',
+              color: theme.colors.secondary[700],
               display: 'flex',
               alignItems: 'center',
               gap: '8px'
@@ -373,7 +373,7 @@ const UserDashboard = ({ onClose }) => {
             </div>
             <div style={{
               fontSize: '24px',
-              color: 'rgba(255,255,255,0.5)',
+              color: theme.colors.secondary[400],
               transform: showUsageDetails ? 'rotate(180deg)' : 'rotate(0deg)',
               transition: 'transform 0.2s ease'
             }}>
@@ -403,7 +403,7 @@ const UserDashboard = ({ onClose }) => {
                     backgroundColor: 'rgba(251, 191, 36, 0.1)',
                     border: '1px solid rgba(251, 191, 36, 0.3)',
                     borderRadius: '8px',
-                    color: '#fbbf24',
+                    color: theme.colors.warning[500],
                     fontSize: '12px',
                     fontWeight: '500',
                     marginBottom: '12px'
