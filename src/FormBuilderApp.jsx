@@ -87,8 +87,13 @@ const FormBuilderApp = () => {
   useEffect(() => {
     const loadTemplates = async () => {
       if (currentUser) {
-        const templates = await getUserFormTemplates(currentUser.uid);
-        setSavedTemplates(templates);
+        try {
+          const templates = await getUserFormTemplates(currentUser.uid);
+          setSavedTemplates(templates);
+        } catch (error) {
+          console.error('Error loading templates:', error);
+          setSavedTemplates([]);
+        }
       }
     };
     loadTemplates();
@@ -107,6 +112,7 @@ const FormBuilderApp = () => {
     }
     
     const template = {
+      id: Date.now(), // Add unique ID
       name: templateName,
       fields: formFields,
       rows: formRowsStructure,
@@ -114,16 +120,22 @@ const FormBuilderApp = () => {
       createdAt: new Date().toISOString()
     };
     
-    const success = await saveFormTemplate(currentUser.uid, template);
-    
-    if (success) {
-      const templates = await getUserFormTemplates(currentUser.uid);
-      setSavedTemplates(templates);
-      setShowSaveDialog(false);
-      setTemplateName('');
-      alert('✅ Template saved successfully!');
-    } else {
-      alert('❌ Failed to save template. Please try again.');
+    try {
+      console.log('Attempting to save template:', template);
+      const success = await saveFormTemplate(currentUser.uid, template);
+      
+      if (success) {
+        const templates = await getUserFormTemplates(currentUser.uid);
+        setSavedTemplates(templates);
+        setShowSaveDialog(false);
+        setTemplateName('');
+        alert('✅ Template saved successfully!');
+      } else {
+        alert('❌ Failed to save template. Please try again.');
+      }
+    } catch (error) {
+      console.error('Save template error:', error);
+      alert('❌ Failed to save template: ' + (error.message || 'Unknown error'));
     }
   };
 
@@ -158,6 +170,7 @@ const FormBuilderApp = () => {
     if (!currentUser) return;
     
     const duplicatedTemplate = {
+      id: Date.now() + Math.random(), // Add unique ID
       name: `${template.name} (Copy)`,
       fields: template.fields.map(field => ({
         ...field,

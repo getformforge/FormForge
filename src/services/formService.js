@@ -17,57 +17,100 @@ import { db } from '../firebase';
 // Forms Collection
 export const saveFormTemplate = async (userId, template) => {
   try {
-    const templateRef = doc(collection(db, 'forms'), template.id.toString());
-    await setDoc(templateRef, {
-      ...template,
+    // Log the template data for debugging
+    console.log('Saving template:', { userId, template });
+    
+    // Ensure all required fields are present
+    if (!template.name || !template.fields) {
+      throw new Error('Template must have name and fields');
+    }
+    
+    const templateRef = doc(collection(db, 'formTemplates'), template.id.toString());
+    const templateData = {
       userId,
+      name: template.name,
+      fields: template.fields || [],
+      rows: template.rows || [],
+      settings: template.settings || {},
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
-    });
+    };
     
-    // Update user form count
+    console.log('Template data to save:', templateData);
+    
+    await setDoc(templateRef, templateData);
+    
+    // Update user form count - first ensure user doc exists
     const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, {
-      formCount: increment(1)
-    });
+    try {
+      await updateDoc(userRef, {
+        formCount: increment(1)
+      });
+    } catch (updateError) {
+      // If user doc doesn't exist, create it
+      if (updateError.code === 'not-found') {
+        await setDoc(userRef, {
+          formCount: 1,
+          submissionCount: 0,
+          plan: 'free',
+          createdAt: serverTimestamp()
+        });
+      } else {
+        console.warn('Could not update user form count:', updateError);
+      }
+    }
     
     return true;
   } catch (error) {
     console.error('Error saving form template:', error);
-    return false;
+    throw error; // Re-throw to provide more detail to the caller
   }
 };
 
 export const getUserFormTemplates = async (userId) => {
   try {
+    console.log('Fetching templates for user:', userId);
+    
+    // Simplified query - remove orderBy to avoid index requirement
     const q = query(
-      collection(db, 'forms'), 
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc')
+      collection(db, 'formTemplates'), 
+      where('userId', '==', userId)
     );
     const querySnapshot = await getDocs(q);
     
-    return querySnapshot.docs.map(doc => ({
+    console.log('Found templates:', querySnapshot.size);
+    
+    // Sort in JavaScript instead
+    const templates = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate() || new Date()
     }));
+    
+    // Sort by createdAt descending
+    templates.sort((a, b) => b.createdAt - a.createdAt);
+    
+    return templates;
   } catch (error) {
     console.error('Error fetching form templates:', error);
-    return [];
+    throw error; // Re-throw to provide more detail
   }
 };
 
 export const deleteFormTemplate = async (userId, templateId) => {
   try {
-    const templateRef = doc(db, 'forms', templateId.toString());
+    const templateRef = doc(db, 'formTemplates', templateId.toString());
     await deleteDoc(templateRef);
     
     // Update user form count
     const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, {
-      formCount: increment(-1)
-    });
+    try {
+      await updateDoc(userRef, {
+        formCount: increment(-1)
+      });
+    } catch (updateError) {
+      console.warn('Could not update user form count on delete:', updateError);
+    }
     
     return true;
   } catch (error) {

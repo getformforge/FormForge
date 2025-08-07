@@ -1,5 +1,6 @@
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { auth } from '../firebase';
 
 // Function to fix existing users who don't have proper stats
 export const ensureUserStats = async (userId) => {
@@ -22,6 +23,20 @@ export const ensureUserStats = async (userId) => {
         await updateDoc(userRef, updates);
         console.log('Updated user stats for:', userId);
       }
+    } else {
+      // Create user document if it doesn't exist
+      const user = auth.currentUser;
+      await setDoc(userRef, {
+        email: user?.email || '',
+        displayName: user?.displayName || '',
+        plan: 'free',
+        createdAt: new Date(),
+        formCount: 0,
+        submissionCount: 0,
+        stripeCustomerId: null,
+        pdfGenerations: {}
+      });
+      console.log('Created user document for:', userId);
     }
   } catch (error) {
     console.error('Error ensuring user stats:', error);
