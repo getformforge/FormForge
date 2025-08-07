@@ -257,6 +257,7 @@ export const publishForm = async (userId, formData) => {
       title: formData.title || 'Untitled Form',
       description: formData.description || '',
       fields: formData.fields || [],
+      rowsStructure: formData.rowsStructure || [], // CRITICAL: Save the row/column layout
       ownerId: userId,
       isPublished: true,
       theme: formData.theme || 'modern', // Add theme support

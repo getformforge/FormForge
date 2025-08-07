@@ -640,7 +640,16 @@ const FormBuilderApp = () => {
             let value = isBlank ? '________________________' : (formData[field.id] || '(Not provided)');
             
             if (field.type === 'checkbox') {
-              value = value ? '✓ Yes' : '✗ No';
+              // For checkboxes, show an actual checkbox symbol
+              if (isBlank) {
+                value = '☐'; // Empty checkbox for blank templates
+              } else {
+                value = formData[field.id] ? '☑' : '☐'; // Checked or unchecked box
+              }
+              // Also show the label text if provided
+              if (field.placeholder) {
+                value = value + ' ' + field.placeholder;
+              }
             } else if (field.type === 'rating') {
               value = value ? `${'★'.repeat(value)}${'☆'.repeat(5-value)} (${value}/5)` : '(Not rated)';
             } else if (field.type === 'signature') {
@@ -1302,8 +1311,33 @@ const FormBuilderApp = () => {
                     const fieldRows = getFieldRows(true); // Apply conditional logic for preview
                     
                     fieldRows.forEach((row, index) => {
-                      // Estimate row height based on number of fields and columns
-                      const estimatedHeight = row.columns > 1 ? ROW_HEIGHT : ROW_HEIGHT * 1.2;
+                      // Calculate more accurate row height based on field types
+                      let estimatedHeight = ROW_HEIGHT;
+                      
+                      // Layout elements have different heights
+                      if (row.fields && row.fields.length > 0) {
+                        const hasLayoutField = row.fields.some(f => ['heading1', 'heading2', 'paragraph', 'divider'].includes(f.type));
+                        const hasTextarea = row.fields.some(f => f.type === 'textarea');
+                        const hasSignature = row.fields.some(f => f.type === 'signature');
+                        
+                        if (hasLayoutField) {
+                          // Layout fields take less space
+                          estimatedHeight = 25;
+                        } else if (hasSignature) {
+                          // Signature fields need more space
+                          estimatedHeight = 60;
+                        } else if (hasTextarea) {
+                          // Textareas need more space
+                          estimatedHeight = 50;
+                        } else if (row.columns > 1) {
+                          // Multi-column rows are more compact
+                          estimatedHeight = 30;
+                        } else {
+                          // Single column regular fields
+                          estimatedHeight = 35;
+                        }
+                      }
+                      
                       const maxHeight = currentPage.pageNumber === 1 ? FIRST_PAGE_USABLE : USABLE_HEIGHT;
                       
                       if (currentHeight + estimatedHeight > maxHeight) {
@@ -1357,12 +1391,34 @@ const FormBuilderApp = () => {
                             }}>
                               {/* Header only on first page */}
                               {pageIndex === 0 && (
-                                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                                <div style={{ 
+                                  textAlign: formSettings.headerAlignment || 'center', 
+                                  marginBottom: '20px' 
+                                }}>
+                                  {/* Logo if present */}
+                                  {formSettings.logo && (
+                                    <div style={{ 
+                                      textAlign: formSettings.logoPosition || 'left',
+                                      marginBottom: '10px'
+                                    }}>
+                                      <img 
+                                        src={formSettings.logo} 
+                                        alt="Logo" 
+                                        style={{ 
+                                          height: '40px',
+                                          display: formSettings.logoPosition === 'center' ? 'inline-block' : 'block',
+                                          marginLeft: formSettings.logoPosition === 'right' ? 'auto' : formSettings.logoPosition === 'center' ? 'auto' : '0',
+                                          marginRight: formSettings.logoPosition === 'center' ? 'auto' : '0'
+                                        }} 
+                                      />
+                                    </div>
+                                  )}
+                                  
                                   <h3 style={{ 
                                     margin: 0, 
-                                    fontSize: '18px',
+                                    fontSize: `${parseInt(formSettings.headerFontSize) || 18}px`,
                                     fontWeight: 'bold',
-                                    color: '#333333',
+                                    color: formSettings.headerColor || '#333333',
                                     marginBottom: '8px'
                                   }}>
                                     {formSettings.pdfHeader || 'Form Submission'}
@@ -1371,19 +1427,21 @@ const FormBuilderApp = () => {
                                     <p style={{ 
                                       color: '#666666', 
                                       margin: 0,
-                                      fontSize: '14px',
+                                      fontSize: `${parseInt(formSettings.subheaderFontSize) || 14}px`,
                                       marginBottom: '6px'
                                     }}>
                                       {formSettings.pdfSubheader}
                                     </p>
                                   )}
-                                  <p style={{ 
-                                    color: '#999999', 
-                                    margin: 0,
-                                    fontSize: '11px' 
-                                  }}>
-                                    Date: {formSettings.pdfDate ? new Date(formSettings.pdfDate).toLocaleDateString() : new Date().toLocaleDateString()}
-                                  </p>
+                                  {formSettings.showDate !== false && (
+                                    <p style={{ 
+                                      color: '#999999', 
+                                      margin: 0,
+                                      fontSize: '11px' 
+                                    }}>
+                                      Date: {formSettings.pdfDate ? new Date(formSettings.pdfDate).toLocaleDateString() : new Date().toLocaleDateString()}
+                                    </p>
+                                  )}
                                   <div style={{
                                     height: '1px',
                                     background: '#cccccc',
@@ -1441,7 +1499,10 @@ const FormBuilderApp = () => {
                                                 <span style={{ fontStyle: 'italic' }}>[Sign here] _____________________</span>
                                               )
                                             ) : field.type === 'checkbox' ? (
-                                              formData[field.id] ? '✓ Yes' : '✗ No'
+                                              <span>
+                                                {formData[field.id] ? '☑' : '☐'}
+                                                {field.placeholder && ` ${field.placeholder}`}
+                                              </span>
                                             ) : field.type === 'rating' ? (
                                               formData[field.id] ? `${'★'.repeat(formData[field.id])}${'☆'.repeat(5-formData[field.id])} (${formData[field.id]}/5)` : '(Not rated)'
                                             ) : (

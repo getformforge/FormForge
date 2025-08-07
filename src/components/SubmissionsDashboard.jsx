@@ -457,45 +457,113 @@ const generatePDFFromSubmission = (submission, form) => {
   pdf.setDrawColor(200, 200, 200);
   pdf.line(margin, currentY - 10, pageWidth - margin, currentY - 10);
   
-  // Form fields and responses - apply conditional logic
-  const visibleFields = form?.fields?.filter(field => 
-    evaluateFieldConditions(field, submission.responses || {}, form.fields)
-  ) || [];
+  // Form fields and responses - use row/column structure
+  let rows = [];
   
-  visibleFields.forEach((field) => {
-    if (currentY > 250) {
+  // If form has rowsStructure, use that for proper layout
+  if (form?.rowsStructure && form.rowsStructure.length > 0) {
+    rows = form.rowsStructure.map(row => {
+      // Apply conditional logic to filter visible fields
+      const visibleFields = (row.fields || []).filter(field => 
+        evaluateFieldConditions(field, submission.responses || {}, form.fields)
+      );
+      return {
+        ...row,
+        fields: visibleFields,
+        columns: row.columns || 1
+      };
+    });
+  } else {
+    // Fallback to single column layout if no row structure
+    const visibleFields = form?.fields?.filter(field => 
+      evaluateFieldConditions(field, submission.responses || {}, form.fields)
+    ) || [];
+    rows = visibleFields.map(field => ({
+      id: field.id,
+      fields: [field],
+      columns: 1
+    }));
+  }
+  
+  // Process rows with multi-column support
+  rows.forEach((row) => {
+    if (!row.fields || row.fields.length === 0) return;
+    
+    // Check if we need a new page
+    if (currentY > pageHeight - 50) {
       pdf.addPage();
       currentY = 30;
     }
     
-    pdf.setFontSize(12);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text(`${field.label}:`, margin, currentY);
+    const columns = row.columns || 1;
+    const columnWidth = (pageWidth - (margin * 2)) / columns;
+    let maxHeight = 0;
     
-    pdf.setFont('helvetica', 'normal');
-    let value = submission.responses?.[field.id] || '(Not provided)';
+    row.fields.forEach((field, colIndex) => {
+      const xPos = margin + (colIndex * columnWidth);
+      
+      // Handle layout fields
+      if (['heading1', 'heading2', 'paragraph', 'divider'].includes(field.type)) {
+        // Layout elements span full width
+        if (field.type === 'divider') {
+          pdf.setDrawColor(200, 200, 200);
+          pdf.line(margin, currentY, pageWidth - margin, currentY);
+          currentY += 8;
+        } else {
+          // Handle headings and paragraphs
+          const fontSize = field.type === 'heading1' ? 16 : field.type === 'heading2' ? 14 : 10;
+          pdf.setFontSize(fontSize);
+          pdf.setFont('helvetica', field.type.startsWith('heading') ? 'bold' : 'normal');
+          pdf.text(field.content || '', margin, currentY);
+          currentY += fontSize / 2 + 5;
+        }
+      } else if (field.label) {
+        // Regular form fields
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(`${field.label}:`, xPos, currentY);
+        
+        pdf.setFont('helvetica', 'normal');
+        let value = submission.responses?.[field.id] || '(Not provided)';
+        
+        if (field.type === 'checkbox') {
+          // Use actual checkbox symbols
+          value = value ? '☑' : '☐';
+          if (field.placeholder) {
+            value = value + ' ' + field.placeholder;
+          }
+        } else if (field.type === 'rating') {
+          value = value ? `${'★'.repeat(value)}${'☆'.repeat(5-value)} (${value}/5)` : '(Not rated)';
+        } else if (field.type === 'signature' && value && value.startsWith('data:image')) {
+          // Add signature image
+          try {
+            const imgWidth = 40;
+            const imgHeight = 20;
+            pdf.addImage(value, 'PNG', xPos, currentY + 5, imgWidth, imgHeight);
+            maxHeight = Math.max(maxHeight, 30);
+            return; // Skip text rendering for signature
+          } catch (e) {
+            value = '✍ Signed';
+          }
+        }
+        
+        // Handle text value with column width constraint
+        const maxTextWidth = columnWidth - 10;
+        const splitText = pdf.splitTextToSize(String(value), maxTextWidth);
+        
+        pdf.setTextColor(102, 102, 102);
+        pdf.setFontSize(9);
+        if (Array.isArray(splitText)) {
+          splitText.forEach((line, index) => {
+            pdf.text(line, xPos, currentY + 5 + (index * 4));
+          });
+          const fieldHeight = 5 + (splitText.length * 4) + 5;
+          maxHeight = Math.max(maxHeight, fieldHeight);
+        }
+      }
+    });
     
-    if (field.type === 'checkbox') {
-      value = value ? '✓ Yes' : '✗ No';
-    } else if (field.type === 'rating') {
-      value = value ? `${'★'.repeat(value)}${'☆'.repeat(5-value)} (${value}/5)` : '(Not rated)';
-    } else if (field.type === 'signature') {
-      value = value ? '✍ Signed' : '(No signature)';
-    }
-    
-    // Handle long text by wrapping
-    const valueText = String(value);
-    const splitText = pdf.splitTextToSize(valueText, pageWidth - margin * 2 - 10);
-    
-    if (Array.isArray(splitText)) {
-      splitText.forEach((line, index) => {
-        pdf.text(line, margin, currentY + 12 + (index * 5));
-      });
-      currentY += 12 + (splitText.length * 5) + 10;
-    } else {
-      pdf.text(valueText.substring(0, 60), margin, currentY + 12);
-      currentY += 25;
-    }
+    currentY += maxHeight;
   });
   
   // Add page numbers and footer
