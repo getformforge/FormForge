@@ -271,7 +271,7 @@ const HomePage = ({ onNavigate }) => {
             </button>
 
             <Link
-              to="/integrations"
+              to="/partners"
               style={{
                 padding: '8px 16px',
                 color: '#374151',

@@ -675,7 +675,7 @@ You can manage your subscription, update payment methods, and download invoices.
 
             <div style={{ textAlign: 'center' }}>
               <Link 
-                to="/integrations"
+                to="/partners"
                 style={{
                   fontSize: '14px',
                   color: '#3b82f6',
