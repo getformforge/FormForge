@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { ArrowRight, CheckCircle, FileText, Download, Users, Star, Zap, Shield, Clock, Target, Layers, GitBranch, Save, CreditCard } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, CheckCircle, FileText, Download, Users, Star, Zap, Shield, Clock, Target, Layers, GitBranch, Save, CreditCard, User } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
-import Header from '../components/layout/Header';
 import Templates from '../components/Templates';
 import Auth from '../components/Auth';
 import UserDashboard from '../components/UserDashboard';
+import PricingModal from '../components/PricingModal';
 import { useAuth } from '../contexts/AuthContext';
 import { theme } from '../styles/theme';
 
@@ -15,6 +16,7 @@ const HomePage = ({ onNavigate }) => {
   const [showTemplates, setShowTemplates] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [showUserDashboard, setShowUserDashboard] = useState(false);
+  const [showPricing, setShowPricing] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
 
   const handleTemplateSelect = (templateFields, templateName) => {
@@ -172,208 +174,273 @@ const HomePage = ({ onNavigate }) => {
 
   return (
     <Layout variant="landing">
-      {/* Header */}
-      <Header
-        title="FormForge"
-        showHomeButton={false}
-        user={currentUser}
-        onUserClick={() => setShowUserDashboard(true)}
-        rightContent={
-          currentUser ? (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => onNavigate('builder')}
-            >
-              Go to Builder
-            </Button>
-          ) : (
-            <Layout.Flex gap={2}>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setShowAuth(true)}
-              >
-                Sign In
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => setShowAuth(true)}
-              >
-                Get Started
-              </Button>
-            </Layout.Flex>
-          )
-        }
-      />
-
-      {/* Navigation Bar */}
+      {/* Professional Header */}
       <div style={{
         background: 'white',
         borderBottom: '1px solid #e5e7eb',
-        padding: '0 24px',
         position: 'sticky',
-        top: '73px',
-        zIndex: 90,
+        top: 0,
+        zIndex: 100,
         boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
       }}>
         <div style={{
-          maxWidth: '1200px',
+          maxWidth: '1400px',
           margin: '0 auto',
+          padding: '0 24px',
+          height: '64px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          gap: '32px',
-          padding: '12px 0'
+          justifyContent: 'space-between'
         }}>
-          <a 
-            href="/builder"
-            style={{
-              color: '#374151',
-              textDecoration: 'none',
-              fontSize: '14px',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'color 0.2s'
-            }}
-            onMouseEnter={(e) => e.target.style.color = '#3b82f6'}
-            onMouseLeave={(e) => e.target.style.color = '#374151'}
-          >
-            <Layers size={16} />
-            Form Builder
-          </a>
-          
-          <button
-            onClick={() => {
-              setTimeout(() => {
-                const element = document.getElementById('templates-section');
-                if (element) {
-                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                } else {
-                  console.log('Templates section not found');
-                }
-              }, 100);
-            }}
-            style={{
-              color: '#374151',
-              textDecoration: 'none',
-              fontSize: '14px',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'color 0.2s',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              fontFamily: 'inherit'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#3b82f6';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = '#374151';
-            }}
-          >
-            <FileText size={16} />
-            Templates
-          </button>
-          
-          <a 
-            href="/integrations"
-            style={{
-              color: '#374151',
-              textDecoration: 'none',
-              fontSize: '14px',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'color 0.2s',
-              background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              color: 'white'
-            }}
-          >
-            <Zap size={16} />
-            Partners
-            <span style={{
-              background: 'white',
-              color: '#f59e0b',
-              padding: '2px 6px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              fontWeight: 'bold',
-              marginLeft: '4px'
+          {/* Left: Logo */}
+          <Link to="/" style={{
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <div style={{
+              fontSize: '24px',
+              fontWeight: '800',
+              background: 'linear-gradient(135deg, #ff6b35 0%, #f97316 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
             }}>
-              NEW
-            </span>
-          </a>
-          
-          <button
-            onClick={() => {
-              setTimeout(() => {
-                const element = document.getElementById('pricing-section');
-                if (element) {
-                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                } else {
-                  console.log('Pricing section not found');
-                }
-              }, 100);
-            }}
-            style={{
-              color: '#374151',
-              textDecoration: 'none',
-              fontSize: '14px',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'color 0.2s',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              fontFamily: 'inherit'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#3b82f6';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = '#374151';
-            }}
-          >
-            <CreditCard size={16} />
-            Pricing
-          </button>
+              FormForge
+            </div>
+          </Link>
+
+          {/* Right: Navigation */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <Link
+              to="/builder"
+              style={{
+                padding: '8px 16px',
+                color: '#374151',
+                textDecoration: 'none',
+                fontSize: '14px',
+                fontWeight: '500',
+                borderRadius: '6px',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f3f4f6';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              <Layers size={16} />
+              Form Builder
+            </Link>
+
+            <button
+              onClick={() => setShowTemplates(true)}
+              style={{
+                padding: '8px 16px',
+                color: '#374151',
+                background: 'transparent',
+                border: 'none',
+                fontSize: '14px',
+                fontWeight: '500',
+                borderRadius: '6px',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                cursor: 'pointer',
+                fontFamily: 'inherit'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f3f4f6';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              <FileText size={16} />
+              Templates
+            </button>
+
+            <Link
+              to="/integrations"
+              style={{
+                padding: '8px 16px',
+                color: '#374151',
+                textDecoration: 'none',
+                fontSize: '14px',
+                fontWeight: '500',
+                borderRadius: '6px',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                position: 'relative'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f3f4f6';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              <Zap size={16} />
+              Partners
+              <span style={{
+                position: 'absolute',
+                top: '4px',
+                right: '4px',
+                background: '#f59e0b',
+                color: 'white',
+                padding: '2px 4px',
+                borderRadius: '4px',
+                fontSize: '9px',
+                fontWeight: 'bold',
+                lineHeight: '1'
+              }}>
+                NEW
+              </span>
+            </Link>
+
+            <button
+              onClick={() => setShowPricing(true)}
+              style={{
+                padding: '8px 16px',
+                color: '#374151',
+                background: 'transparent',
+                border: 'none',
+                fontSize: '14px',
+                fontWeight: '500',
+                borderRadius: '6px',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                cursor: 'pointer',
+                fontFamily: 'inherit'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f3f4f6';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              <CreditCard size={16} />
+              Pricing
+            </button>
+
+            {/* Divider */}
+            <div style={{
+              width: '1px',
+              height: '24px',
+              backgroundColor: '#e5e7eb',
+              margin: '0 8px'
+            }} />
+
+            {/* User/Auth Section */}
+            {currentUser ? (
+              <button
+                onClick={() => setShowUserDashboard(true)}
+                style={{
+                  padding: '8px 16px',
+                  color: '#374151',
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  borderRadius: '6px',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f3f4f6';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+              >
+                <User size={16} />
+                {currentUser.displayName || currentUser.email?.split('@')[0] || 'Account'}
+              </button>
+            ) : (
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => setShowAuth(true)}
+                  style={{
+                    padding: '8px 16px',
+                    color: '#374151',
+                    background: 'transparent',
+                    border: '1px solid #e5e7eb',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#d1d5db';
+                    e.currentTarget.style.backgroundColor = '#f9fafb';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#e5e7eb';
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => setShowAuth(true)}
+                  style={{
+                    padding: '8px 20px',
+                    background: 'linear-gradient(135deg, #ff6b35 0%, #f97316 100%)',
+                    color: 'white',
+                    border: 'none',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 107, 53, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  Get Started
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
 
       {/* Hero Section */}
       <Layout.Section padding="xl">
         <Layout.Container>
           <div style={{ textAlign: 'center', marginBottom: theme.spacing[16] }}>
-            <div style={{
-              fontSize: theme.typography.fontSize['6xl'],
-              fontWeight: theme.typography.fontWeight.black,
-              background: theme.gradients.primary,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              marginBottom: theme.spacing[6],
-              lineHeight: theme.typography.lineHeight.tight,
-              letterSpacing: '-0.02em'
-            }}>
-              FormForge
-            </div>
             
             <h1 style={{
-              fontSize: theme.typography.fontSize['4xl'],
+              fontSize: theme.typography.fontSize['5xl'],
               fontWeight: theme.typography.fontWeight.bold,
               color: theme.colors.secondary[900],
               marginBottom: theme.spacing[6],
@@ -774,112 +841,9 @@ const HomePage = ({ onNavigate }) => {
         </Layout.Container>
       </Layout.Section>
 
-      {/* Pricing Section */}
-      <Layout.Section id="pricing-section" padding="xl" style={{ background: theme.colors.secondary[50] }}>
+      {/* CTA Section */}
+      <Layout.Section padding="xl" style={{ background: theme.colors.secondary[50] }}>
         <Layout.Container>
-          <div style={{ textAlign: 'center', marginBottom: theme.spacing[12] }}>
-            <h2 style={{
-              fontSize: theme.typography.fontSize['4xl'],
-              fontWeight: theme.typography.fontWeight.bold,
-              color: theme.colors.secondary[900],
-              marginBottom: theme.spacing[4]
-            }}>
-              Simple, Transparent Pricing
-            </h2>
-            <p style={{
-              fontSize: theme.typography.fontSize.lg,
-              color: theme.colors.secondary[600],
-              maxWidth: '600px',
-              margin: '0 auto'
-            }}>
-              Start free and upgrade as you grow. No hidden fees.
-            </p>
-          </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: theme.spacing[6],
-            maxWidth: '900px',
-            margin: '0 auto',
-            marginBottom: theme.spacing[12]
-          }}>
-            {/* Free Plan */}
-            <Card variant="base" padding="lg" style={{ textAlign: 'center' }}>
-              <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Free</h3>
-              <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#3b82f6', marginBottom: '16px' }}>
-                $0<span style={{ fontSize: '16px', color: '#6b7280' }}>/month</span>
-              </div>
-              <ul style={{ textAlign: 'left', fontSize: '14px', color: '#374151', marginBottom: '24px' }}>
-                <li style={{ marginBottom: '8px' }}>✓ 3 forms</li>
-                <li style={{ marginBottom: '8px' }}>✓ 100 submissions/month</li>
-                <li style={{ marginBottom: '8px' }}>✓ Basic fields</li>
-                <li style={{ marginBottom: '8px' }}>✓ PDF generation</li>
-                <li style={{ marginBottom: '8px' }}>✓ FormForge branding</li>
-              </ul>
-              <Button variant="secondary" fullWidth onClick={() => setShowAuth(true)}>
-                Get Started
-              </Button>
-            </Card>
-
-            {/* Pro Plan */}
-            <Card variant="base" padding="lg" style={{ 
-              textAlign: 'center',
-              border: '2px solid #3b82f6',
-              position: 'relative'
-            }}>
-              <div style={{
-                position: 'absolute',
-                top: '-12px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                background: '#3b82f6',
-                color: 'white',
-                padding: '4px 16px',
-                borderRadius: '12px',
-                fontSize: '12px',
-                fontWeight: 'bold'
-              }}>
-                MOST POPULAR
-              </div>
-              <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Pro</h3>
-              <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#3b82f6', marginBottom: '16px' }}>
-                $9.99<span style={{ fontSize: '16px', color: '#6b7280' }}>/month</span>
-              </div>
-              <ul style={{ textAlign: 'left', fontSize: '14px', color: '#374151', marginBottom: '24px' }}>
-                <li style={{ marginBottom: '8px' }}>✓ Unlimited forms</li>
-                <li style={{ marginBottom: '8px' }}>✓ Unlimited submissions</li>
-                <li style={{ marginBottom: '8px' }}>✓ All field types</li>
-                <li style={{ marginBottom: '8px' }}>✓ Conditional logic</li>
-                <li style={{ marginBottom: '8px' }}>✓ No branding</li>
-                <li style={{ marginBottom: '8px' }}>✓ Priority support</li>
-              </ul>
-              <Button variant="primary" fullWidth onClick={() => setShowAuth(true)}>
-                Start Free Trial
-              </Button>
-            </Card>
-
-            {/* Business Plan */}
-            <Card variant="base" padding="lg" style={{ textAlign: 'center' }}>
-              <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Business</h3>
-              <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#3b82f6', marginBottom: '16px' }}>
-                $29.99<span style={{ fontSize: '16px', color: '#6b7280' }}>/month</span>
-              </div>
-              <ul style={{ textAlign: 'left', fontSize: '14px', color: '#374151', marginBottom: '24px' }}>
-                <li style={{ marginBottom: '8px' }}>✓ Everything in Pro</li>
-                <li style={{ marginBottom: '8px' }}>✓ Team collaboration</li>
-                <li style={{ marginBottom: '8px' }}>✓ White-label option</li>
-                <li style={{ marginBottom: '8px' }}>✓ API access</li>
-                <li style={{ marginBottom: '8px' }}>✓ Advanced analytics</li>
-                <li style={{ marginBottom: '8px' }}>✓ Dedicated support</li>
-              </ul>
-              <Button variant="secondary" fullWidth onClick={() => setShowAuth(true)}>
-                Contact Sales
-              </Button>
-            </Card>
-          </div>
-
-          {/* CTA below pricing */}
           <Card variant="glass" padding="xl" style={{ textAlign: 'center' }}>
             <h2 style={{
               fontSize: theme.typography.fontSize['3xl'],
@@ -936,6 +900,11 @@ const HomePage = ({ onNavigate }) => {
       {/* Auth Modal */}
       {showAuth && (
         <Auth onSuccess={handleAuthSuccess} onClose={() => setShowAuth(false)} />
+      )}
+
+      {/* Pricing Modal */}
+      {showPricing && (
+        <PricingModal onClose={() => setShowPricing(false)} />
       )}
     </Layout>
   );

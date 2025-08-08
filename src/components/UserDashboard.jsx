@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { User, LogOut, Crown, BarChart3, FileText, Mail, Calendar, CreditCard, TrendingUp, AlertTriangle, X, Settings, Zap } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { theme } from '../styles/theme';
@@ -673,8 +674,8 @@ You can manage your subscription, update payment methods, and download invoices.
             </div>
 
             <div style={{ textAlign: 'center' }}>
-              <a 
-                href="/integrations"
+              <Link 
+                to="/integrations"
                 style={{
                   fontSize: '14px',
                   color: '#3b82f6',
@@ -683,7 +684,7 @@ You can manage your subscription, update payment methods, and download invoices.
                 }}
               >
                 View All Partners →
-              </a>
+              </Link>
             </div>
           </div>
         )}
