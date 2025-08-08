@@ -481,15 +481,37 @@ const generatePDFFromSubmission = (submission, form) => {
   rows.forEach((row) => {
     if (!row.fields || row.fields.length === 0) return;
     
-    // Check if we need a new page before adding content (match blank PDF logic)
-    if (currentY > pageHeight - 50 && row.fields && row.fields.length > 0) {
-      const remainingHeight = pageHeight - currentY;
-      const estimatedRowHeight = 30;
-      
-      if (remainingHeight < estimatedRowHeight) {
-        pdf.addPage();
-        currentY = 30;
+    // Calculate row height BEFORE processing (predictive)
+    let estimatedRowHeight = 20; // Base height for a row
+    
+    // Check each field to estimate height
+    row.fields.forEach(field => {
+      if (['heading1', 'heading2', 'paragraph', 'divider'].includes(field.type)) {
+        if (field.type === 'heading1') estimatedRowHeight = Math.max(estimatedRowHeight, 12);
+        else if (field.type === 'heading2') estimatedRowHeight = Math.max(estimatedRowHeight, 10);
+        else if (field.type === 'paragraph') {
+          const lines = field.content ? Math.ceil(field.content.length / 80) : 1;
+          estimatedRowHeight = Math.max(estimatedRowHeight, lines * 5 + 3);
+        }
+        else if (field.type === 'divider') estimatedRowHeight = Math.max(estimatedRowHeight, 8);
+      } else if (field.type === 'signature') {
+        // Signature fields need 50mm height even with data
+        estimatedRowHeight = Math.max(estimatedRowHeight, 50);
+      } else {
+        // Regular fields - estimate based on content
+        const value = submission.responses?.[field.id] || '';
+        const valueStr = String(value);
+        const lines = Math.ceil(valueStr.length / 50);
+        estimatedRowHeight = Math.max(estimatedRowHeight, 8 + (lines * 4) + 8);
       }
+    });
+    
+    // Check if we need a new page BEFORE processing this row (predictive)
+    const pageBreakThreshold = pageHeight - 40; // Leave 40mm for footer
+    if (currentY + estimatedRowHeight > pageBreakThreshold && row.fields && row.fields.length > 0) {
+      console.log(`Submission PDF - Page break triggered: currentY=${currentY} + estimatedHeight=${estimatedRowHeight} > threshold=${pageBreakThreshold}`);
+      pdf.addPage();
+      currentY = 30;
     }
     
     const columns = row.columns || 1;
@@ -564,16 +586,19 @@ const generatePDFFromSubmission = (submission, form) => {
               const imgWidth = 60;
               const imgHeight = 30;
               pdf.addImage(value, 'PNG', xPos, currentY + 10, imgWidth, imgHeight);
-              // Adjust field height to account for image
-              const fieldHeight = 10 + imgHeight + 10;
-              maxHeight = Math.max(maxHeight, fieldHeight);
+              // Signature fields always need 50mm height to match blank PDFs
+              maxHeight = Math.max(maxHeight, 50);
               value = ''; // Don't add text since we added the image
             } catch (e) {
               console.error('Error adding signature image:', e);
               value = '✍ Signed';
+              // Even for text fallback, maintain 50mm height
+              maxHeight = Math.max(maxHeight, 50);
             }
           } else {
             value = '(No signature)';
+            // No signature provided - still need 50mm height to match blank PDFs
+            maxHeight = Math.max(maxHeight, 50);
           }
         }
         
