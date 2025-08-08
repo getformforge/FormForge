@@ -282,8 +282,7 @@ const HomePage = ({ onNavigate }) => {
                 transition: 'all 0.2s',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                position: 'relative'
+                gap: '6px'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = '#f3f4f6';
@@ -294,20 +293,6 @@ const HomePage = ({ onNavigate }) => {
             >
               <Zap size={16} />
               Partners
-              <span style={{
-                position: 'absolute',
-                top: '4px',
-                right: '4px',
-                background: '#f59e0b',
-                color: 'white',
-                padding: '2px 4px',
-                borderRadius: '4px',
-                fontSize: '9px',
-                fontWeight: 'bold',
-                lineHeight: '1'
-              }}>
-                NEW
-              </span>
             </Link>
 
             <button
