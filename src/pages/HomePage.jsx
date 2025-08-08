@@ -412,7 +412,7 @@ const HomePage = ({ onNavigate }) => {
       </Layout.Section>
 
       {/* Templates Section */}
-      <Layout.Section padding="lg">
+      <Layout.Section id="templates-section" padding="lg">
         <Layout.Container>
           <div style={{ textAlign: 'center', marginBottom: theme.spacing[16] }}>
             <h2 style={{
@@ -746,9 +746,112 @@ const HomePage = ({ onNavigate }) => {
         </Layout.Container>
       </Layout.Section>
 
-      {/* CTA Section */}
-      <Layout.Section padding="xl">
+      {/* Pricing Section */}
+      <Layout.Section id="pricing-section" padding="xl" style={{ background: theme.colors.secondary[50] }}>
         <Layout.Container>
+          <div style={{ textAlign: 'center', marginBottom: theme.spacing[12] }}>
+            <h2 style={{
+              fontSize: theme.typography.fontSize['4xl'],
+              fontWeight: theme.typography.fontWeight.bold,
+              color: theme.colors.secondary[900],
+              marginBottom: theme.spacing[4]
+            }}>
+              Simple, Transparent Pricing
+            </h2>
+            <p style={{
+              fontSize: theme.typography.fontSize.lg,
+              color: theme.colors.secondary[600],
+              maxWidth: '600px',
+              margin: '0 auto'
+            }}>
+              Start free and upgrade as you grow. No hidden fees.
+            </p>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: theme.spacing[6],
+            maxWidth: '900px',
+            margin: '0 auto',
+            marginBottom: theme.spacing[12]
+          }}>
+            {/* Free Plan */}
+            <Card variant="base" padding="lg" style={{ textAlign: 'center' }}>
+              <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Free</h3>
+              <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#3b82f6', marginBottom: '16px' }}>
+                $0<span style={{ fontSize: '16px', color: '#6b7280' }}>/month</span>
+              </div>
+              <ul style={{ textAlign: 'left', fontSize: '14px', color: '#374151', marginBottom: '24px' }}>
+                <li style={{ marginBottom: '8px' }}>✓ 3 forms</li>
+                <li style={{ marginBottom: '8px' }}>✓ 100 submissions/month</li>
+                <li style={{ marginBottom: '8px' }}>✓ Basic fields</li>
+                <li style={{ marginBottom: '8px' }}>✓ PDF generation</li>
+                <li style={{ marginBottom: '8px' }}>✓ FormForge branding</li>
+              </ul>
+              <Button variant="secondary" fullWidth onClick={() => setShowAuth(true)}>
+                Get Started
+              </Button>
+            </Card>
+
+            {/* Pro Plan */}
+            <Card variant="base" padding="lg" style={{ 
+              textAlign: 'center',
+              border: '2px solid #3b82f6',
+              position: 'relative'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '-12px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: '#3b82f6',
+                color: 'white',
+                padding: '4px 16px',
+                borderRadius: '12px',
+                fontSize: '12px',
+                fontWeight: 'bold'
+              }}>
+                MOST POPULAR
+              </div>
+              <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Pro</h3>
+              <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#3b82f6', marginBottom: '16px' }}>
+                $9.99<span style={{ fontSize: '16px', color: '#6b7280' }}>/month</span>
+              </div>
+              <ul style={{ textAlign: 'left', fontSize: '14px', color: '#374151', marginBottom: '24px' }}>
+                <li style={{ marginBottom: '8px' }}>✓ Unlimited forms</li>
+                <li style={{ marginBottom: '8px' }}>✓ Unlimited submissions</li>
+                <li style={{ marginBottom: '8px' }}>✓ All field types</li>
+                <li style={{ marginBottom: '8px' }}>✓ Conditional logic</li>
+                <li style={{ marginBottom: '8px' }}>✓ No branding</li>
+                <li style={{ marginBottom: '8px' }}>✓ Priority support</li>
+              </ul>
+              <Button variant="primary" fullWidth onClick={() => setShowAuth(true)}>
+                Start Free Trial
+              </Button>
+            </Card>
+
+            {/* Business Plan */}
+            <Card variant="base" padding="lg" style={{ textAlign: 'center' }}>
+              <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Business</h3>
+              <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#3b82f6', marginBottom: '16px' }}>
+                $29.99<span style={{ fontSize: '16px', color: '#6b7280' }}>/month</span>
+              </div>
+              <ul style={{ textAlign: 'left', fontSize: '14px', color: '#374151', marginBottom: '24px' }}>
+                <li style={{ marginBottom: '8px' }}>✓ Everything in Pro</li>
+                <li style={{ marginBottom: '8px' }}>✓ Team collaboration</li>
+                <li style={{ marginBottom: '8px' }}>✓ White-label option</li>
+                <li style={{ marginBottom: '8px' }}>✓ API access</li>
+                <li style={{ marginBottom: '8px' }}>✓ Advanced analytics</li>
+                <li style={{ marginBottom: '8px' }}>✓ Dedicated support</li>
+              </ul>
+              <Button variant="secondary" fullWidth onClick={() => setShowAuth(true)}>
+                Contact Sales
+              </Button>
+            </Card>
+          </div>
+
+          {/* CTA below pricing */}
           <Card variant="glass" padding="xl" style={{ textAlign: 'center' }}>
             <h2 style={{
               fontSize: theme.typography.fontSize['3xl'],
