@@ -287,7 +287,7 @@ const HomePage = ({ onNavigate }) => {
             }}
           >
             <Zap size={16} />
-            Integrations
+            Partners
             <span style={{
               background: 'white',
               color: '#f59e0b',

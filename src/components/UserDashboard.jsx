@@ -586,7 +586,7 @@ You can manage your subscription, update payment methods, and download invoices.
               gap: '8px'
             }}>
               <Zap size={20} style={{ color: '#3b82f6' }} />
-              Power Up Your Forms
+              Recommended Partners
             </h3>
             
             <div style={{
@@ -682,7 +682,7 @@ You can manage your subscription, update payment methods, and download invoices.
                   fontWeight: '600'
                 }}
               >
-                View All Integrations →
+                View All Partners →
               </a>
             </div>
           </div>

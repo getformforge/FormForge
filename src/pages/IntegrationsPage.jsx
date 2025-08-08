@@ -160,14 +160,14 @@ const IntegrationsPage = () => {
             fontWeight: 'bold',
             marginBottom: theme.spacing[4]
           }}>
-            Supercharge Your Forms
+            Our Trusted Partners
           </h1>
           <p style={{ 
             fontSize: '20px',
             opacity: 0.95,
             marginBottom: theme.spacing[8]
           }}>
-            Connect FormForge with the tools you already love. Get exclusive discounts and bonuses.
+            Connect FormForge with industry-leading tools. Exclusive deals for our users.
           </p>
           <div style={{
             background: 'rgba(255, 255, 255, 0.2)',
