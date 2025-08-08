@@ -6,6 +6,7 @@ import FormBuilderApp from './FormBuilderApp';
 import InvoiceGenerator from './pages/InvoiceGenerator';
 import ContractGenerator from './pages/ContractGenerator';
 import PublicFormPage from './pages/PublicFormPage';
+import IntegrationsPage from './pages/IntegrationsPage';
 import { templates } from './templates';
 
 const AppRouter = () => {
@@ -76,6 +77,9 @@ const AppRouter = () => {
             path="/contract-generator" 
             element={<ContractGenerator onStartContract={handleStartContract} />} 
           />
+          
+          {/* Integrations/Partners Page */}
+          <Route path="/integrations" element={<IntegrationsPage />} />
           
           {/* Redirect old URLs */}
           <Route path="/templates/invoice" element={<Navigate to="/invoice-generator" replace />} />

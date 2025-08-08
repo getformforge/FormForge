@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, LogOut, Crown, BarChart3, FileText, Mail, Calendar, CreditCard, TrendingUp, AlertTriangle, X, Settings } from 'lucide-react';
+import { User, LogOut, Crown, BarChart3, FileText, Mail, Calendar, CreditCard, TrendingUp, AlertTriangle, X, Settings, Zap } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { theme } from '../styles/theme';
 import { openCustomerPortal } from '../services/stripeService';
@@ -566,6 +566,127 @@ You can manage your subscription, update payment methods, and download invoices.
           <Calendar size={16} />
           Member since {userStats.createdAt?.toLocaleDateString() || 'Unknown'}
         </div>
+
+        {/* Recommended Tools Section - Affiliate */}
+        {userStats.plan === 'free' && (
+          <div style={{
+            marginTop: '32px',
+            padding: '24px',
+            background: 'linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%)',
+            borderRadius: '16px',
+            border: '1px solid #3b82f6'
+          }}>
+            <h3 style={{
+              fontSize: '18px',
+              fontWeight: '700',
+              color: theme.colors.secondary[900],
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <Zap size={20} style={{ color: '#3b82f6' }} />
+              Power Up Your Forms
+            </h3>
+            
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '16px',
+              marginBottom: '16px'
+            }}>
+              {/* Stripe Card */}
+              <a 
+                href="https://stripe.com/partners/referrals?ref=formforge"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'block',
+                  padding: '16px',
+                  background: 'white',
+                  borderRadius: '12px',
+                  border: '1px solid #e5e7eb',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                  <CreditCard size={24} style={{ color: '#635BFF' }} />
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#111827' }}>
+                    Accept Payments
+                  </span>
+                </div>
+                <p style={{ fontSize: '13px', color: '#6b7280', margin: '0 0 8px' }}>
+                  Collect payments in your forms with Stripe
+                </p>
+                <p style={{ fontSize: '12px', color: '#3b82f6', fontWeight: '600', margin: 0 }}>
+                  Get $500 in free credits →
+                </p>
+              </a>
+
+              {/* Zapier Card */}
+              <a 
+                href="https://zapier.com/sign-up?utm_source=partner&utm_campaign=formforge"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'block',
+                  padding: '16px',
+                  background: 'white',
+                  borderRadius: '12px',
+                  border: '1px solid #e5e7eb',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                  <Zap size={24} style={{ color: '#FF4A00' }} />
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#111827' }}>
+                    Automate Workflows
+                  </span>
+                </div>
+                <p style={{ fontSize: '13px', color: '#6b7280', margin: '0 0 8px' }}>
+                  Connect to 5,000+ apps instantly
+                </p>
+                <p style={{ fontSize: '12px', color: '#3b82f6', fontWeight: '600', margin: 0 }}>
+                  14-day free trial →
+                </p>
+              </a>
+            </div>
+
+            <div style={{ textAlign: 'center' }}>
+              <a 
+                href="/integrations"
+                style={{
+                  fontSize: '14px',
+                  color: '#3b82f6',
+                  textDecoration: 'none',
+                  fontWeight: '600'
+                }}
+              >
+                View All Integrations →
+              </a>
+            </div>
+          </div>
+        )}
       </div>
       
       {showSubmissions && (
