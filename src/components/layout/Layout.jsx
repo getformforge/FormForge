@@ -71,7 +71,7 @@ const Container = ({ children, size = 'default', className = '' }) => {
   );
 };
 
-const Section = ({ children, padding = 'default', className = '', style = {} }) => {
+const Section = ({ children, padding = 'default', className = '', style = {}, id, ...props }) => {
   const paddings = {
     none: '0',
     sm: `${theme.spacing[8]} 0`,
@@ -82,11 +82,13 @@ const Section = ({ children, padding = 'default', className = '', style = {} }) 
 
   return (
     <section 
+      id={id}
       style={{
         padding: paddings[padding],
         ...style
       }}
       className={className}
+      {...props}
     >
       {children}
     </section>
