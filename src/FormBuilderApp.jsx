@@ -485,6 +485,7 @@ const FormBuilderApp = () => {
       const pdf = new jsPDF();
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
+      console.log('PDF pageHeight:', pageHeight, 'pageWidth:', pageWidth);
       const margin = 20;
       let currentY = 25;
       let pageNumber = 1;
@@ -569,16 +570,13 @@ const FormBuilderApp = () => {
       rows.forEach((row, rowIndex) => {
         console.log(`PDF Gen - Row ${rowIndex}: fields=${row.fields?.length}, columns=${row.columns}, currentY=${currentY}`);
         // Check if we need a new page before adding content (only if we have substantial content left)
-        if (currentY > pageHeight - 50 && row.fields && row.fields.length > 0) {
-          // Check if this is just trailing space - don't create new page for minimal content
-          const remainingHeight = pageHeight - currentY;
-          const estimatedRowHeight = 30; // Estimate height needed for a typical row
-          
-          if (remainingHeight < estimatedRowHeight) {
-            pdf.addPage();
-            pageNumber++;
-            currentY = 30;
-          }
+        // pageHeight is 297mm for A4, so we need appropriate margins
+        const pageBreakThreshold = pageHeight - 40; // Leave 40mm for footer
+        if (currentY > pageBreakThreshold && row.fields && row.fields.length > 0) {
+          console.log(`Page break triggered: currentY=${currentY} > threshold=${pageBreakThreshold}`);
+          pdf.addPage();
+          pageNumber++;
+          currentY = 30;
         }
         
         // Calculate column width
@@ -1299,20 +1297,22 @@ const FormBuilderApp = () => {
                 <Card.Content>
                   {(() => {
                     // Calculate pages for PDF preview
-                    const A4_HEIGHT = 842; // A4 height at 72 DPI in pixels
+                    // jsPDF uses mm for A4: 210x297mm
+                    const A4_HEIGHT_MM = 297; // A4 height in millimeters (same as PDF)
                     // Only count header height if we're actually showing a header
                     const showHeader = formSettings.showHeader !== false && (formSettings.pdfHeader || formSettings.logo);
-                    const HEADER_HEIGHT = showHeader ? 120 : 0; // Approximate header height
-                    const FOOTER_HEIGHT = 40; // Footer space
-                    const MARGIN_TOP = 40;
-                    const MARGIN_BOTTOM = 40;
-                    const ROW_HEIGHT = 35; // Approximate height per field row
-                    const USABLE_HEIGHT = A4_HEIGHT - MARGIN_TOP - MARGIN_BOTTOM - FOOTER_HEIGHT;
-                    const FIRST_PAGE_USABLE = USABLE_HEIGHT - HEADER_HEIGHT;
+                    const HEADER_HEIGHT = showHeader ? 43 : 0; // Header adds ~43mm in PDF (from 25 to 68)
+                    const FOOTER_HEIGHT = 15; // Footer space in mm (matches PDF)
+                    const MARGIN_TOP = 25; // Starting Y in PDF
+                    const MARGIN_BOTTOM = 15; // Bottom margin in mm
+                    const PAGE_BREAK_THRESHOLD = 40; // PDF breaks at pageHeight - 40
+                    const USABLE_HEIGHT = A4_HEIGHT_MM - PAGE_BREAK_THRESHOLD;
+                    const FIRST_PAGE_USABLE = USABLE_HEIGHT;
                     
                     let pages = [];
                     let currentPage = { rows: [], pageNumber: 1 };
-                    let currentHeight = HEADER_HEIGHT;
+                    // Start at same position as PDF (25mm base + header if present)
+                    let currentHeight = showHeader ? 68 : 25; // Match PDF starting position
                     
                     const fieldRows = getFieldRows(true); // Apply conditional logic for preview
                     console.log('Preview - Starting with rows:', fieldRows.length);
@@ -1340,18 +1340,15 @@ const FormBuilderApp = () => {
                             estimatedHeight = 8;
                           }
                         } else {
-                          // Regular form fields
+                          // Regular form fields - use same heights as PDF (20mm for standard fields)
                           let maxFieldHeight = 0;
                           row.fields.forEach(field => {
                             if (field.type === 'signature') {
-                              // Signature takes 30px image + padding
+                              // Signature height in PDF is 50mm
                               maxFieldHeight = Math.max(maxFieldHeight, 50);
-                            } else if (field.type === 'textarea') {
-                              // Textareas might have multiple lines
-                              maxFieldHeight = Math.max(maxFieldHeight, 24);
                             } else {
-                              // Standard fields (label + value + padding)
-                              maxFieldHeight = Math.max(maxFieldHeight, 24);
+                              // Standard fields are 20mm in PDF (8 + lines*4 + 8 = 20 for 1 line)
+                              maxFieldHeight = Math.max(maxFieldHeight, 20);
                             }
                           });
                           estimatedHeight = maxFieldHeight;
@@ -1359,12 +1356,14 @@ const FormBuilderApp = () => {
                       }
                       
                       if (estimatedHeight === 0) {
-                        estimatedHeight = 24; // Default height
+                        estimatedHeight = 20; // Default height in mm
                       }
                       
-                      const maxHeight = currentPage.pageNumber === 1 ? FIRST_PAGE_USABLE : USABLE_HEIGHT;
+                      // Use same page break logic as PDF (297 - 40 = 257mm)
+                      const pageBreakPoint = A4_HEIGHT_MM - PAGE_BREAK_THRESHOLD;
                       
-                      if (currentHeight + estimatedHeight > maxHeight) {
+                      if (currentHeight + estimatedHeight > pageBreakPoint) {
+                        console.log(`Preview page break: currentHeight ${currentHeight} + estimatedHeight ${estimatedHeight} > ${pageBreakPoint}`);
                         // Start new page
                         pages.push(currentPage);
                         currentPage = { rows: [], pageNumber: currentPage.pageNumber + 1 };
@@ -1404,7 +1403,7 @@ const FormBuilderApp = () => {
                             maxWidth: '595px', // A4 width at 72 DPI
                             margin: pageIndex > 0 ? '20px auto 0' : '0 auto',
                             boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-                            height: '842px', // Fixed A4 height
+                            height: '842px', // Display height (297mm * 2.834 = 842px approx)
                             position: 'relative',
                             pageBreakAfter: 'always'
                           }}>
