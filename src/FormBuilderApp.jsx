@@ -570,11 +570,20 @@ const FormBuilderApp = () => {
       console.log('PDF Generation - Starting with rows:', rows.length);
       rows.forEach((row, rowIndex) => {
         console.log(`PDF Gen - Row ${rowIndex}: fields=${row.fields?.length}, columns=${row.columns}, currentY=${currentY}`);
-        // Check if we need a new page before adding content (only if we have substantial content left)
-        // pageHeight is 297mm for A4, so we need appropriate margins
+        
+        // Estimate the height this row will need
+        let estimatedRowHeight = 0;
+        const hasSignature = row.fields?.some(f => f.type === 'signature');
+        if (hasSignature) {
+          estimatedRowHeight = 50; // Signature fields need 50mm
+        } else if (row.fields?.length > 0) {
+          estimatedRowHeight = 20; // Standard fields need 20mm
+        }
+        
+        // Check if we need a new page BEFORE processing this row (like preview does)
         const pageBreakThreshold = pageHeight - 40; // Leave 40mm for footer
-        if (currentY > pageBreakThreshold && row.fields && row.fields.length > 0) {
-          console.log(`Page break triggered: currentY=${currentY} > threshold=${pageBreakThreshold}`);
+        if (currentY + estimatedRowHeight > pageBreakThreshold && row.fields && row.fields.length > 0) {
+          console.log(`Page break triggered: currentY=${currentY} + estimatedHeight=${estimatedRowHeight} > threshold=${pageBreakThreshold}`);
           pdf.addPage();
           pageNumber++;
           currentY = 30;
@@ -670,13 +679,16 @@ const FormBuilderApp = () => {
                 }
               } else if (isBlank) {
                 value = '[Sign here] _____________________';
+                // Signature fields need extra space even when blank
+                maxHeight = Math.max(maxHeight, 50);
               } else {
                 value = '(No signature)';
+                maxHeight = Math.max(maxHeight, 50);
               }
             }
             
             // Only add text if we have a value (skip for signature images)
-            if (value) {
+            if (value && field.type !== 'signature') {
               const maxTextWidth = columnWidth - columnSpacing;
               const valueText = String(value);
               const lines = pdf.splitTextToSize(valueText, maxTextWidth);
@@ -688,6 +700,10 @@ const FormBuilderApp = () => {
               const fieldHeight = 8 + (lines.length * 4) + 8;
               console.log(`  Field ${field.label}: ${lines.length} lines, height=${fieldHeight}`);
               maxHeight = Math.max(maxHeight, fieldHeight);
+            } else if (value && field.type === 'signature') {
+              // Draw signature text but use signature height
+              pdf.text(value, xPos, currentY + 8);
+              console.log(`  Field ${field.label}: signature field, height=50`);
             }
           }
         });
