@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, ChevronDown, BarChart3, UserCircle, LogOut } from 'lucide-react';
+import { User, ChevronDown, BarChart3, UserCircle, LogOut, Mail } from 'lucide-react';
 import { theme } from '../styles/theme';
 import { useAuth } from '../contexts/AuthContext';
+import EmailSettings from './EmailSettings';
 
 const UserDropdown = ({ user, onProfileClick, onSubmissionsClick }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showEmailSettings, setShowEmailSettings] = useState(false);
   const dropdownRef = useRef(null);
   const { logout } = useAuth();
 
@@ -42,6 +44,14 @@ const UserDropdown = ({ user, onProfileClick, onSubmissionsClick }) => {
       label: 'View Submissions',
       onClick: () => {
         onSubmissionsClick();
+        setIsOpen(false);
+      }
+    },
+    {
+      icon: <Mail size={16} />,
+      label: 'Email Settings',
+      onClick: () => {
+        setShowEmailSettings(true);
         setIsOpen(false);
       }
     },
@@ -182,6 +192,11 @@ const UserDropdown = ({ user, onProfileClick, onSubmissionsClick }) => {
             })}
           </div>
         </div>
+      )}
+      
+      {/* Email Settings Modal */}
+      {showEmailSettings && (
+        <EmailSettings onClose={() => setShowEmailSettings(false)} />
       )}
     </div>
   );

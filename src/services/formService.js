@@ -13,6 +13,7 @@ import {
   increment 
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import emailService from './emailService';
 
 // Forms Collection
 export const saveFormTemplate = async (userId, template) => {
@@ -380,6 +381,23 @@ export const submitFormResponse = async (formId, responseData) => {
       submissionCount: currentSubmissionCount + 1,
       lastSubmissionReceived: serverTimestamp()
     });
+
+    // Send email notification to form owner
+    try {
+      // Get owner's email
+      const ownerEmail = ownerData.email;
+      if (ownerEmail) {
+        await emailService.sendSubmissionNotification({
+          ownerEmail,
+          formTitle: form.title || 'Untitled Form',
+          submissionData: responseData,
+          formId: formId
+        });
+      }
+    } catch (emailError) {
+      // Don't fail the submission if email fails
+      console.error('Failed to send email notification:', emailError);
+    }
 
     return { success: true, submissionId };
   } catch (error) {
