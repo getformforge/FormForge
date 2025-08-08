@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, CheckCircle, FileText, Download, Users, Star, Zap, Shield, Clock, Target, Layers, GitBranch, Save } from 'lucide-react';
+import { ArrowRight, CheckCircle, FileText, Download, Users, Star, Zap, Shield, Clock, Target, Layers, GitBranch, Save, CreditCard } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
@@ -207,6 +207,124 @@ const HomePage = ({ onNavigate }) => {
           )
         }
       />
+
+      {/* Navigation Bar */}
+      <div style={{
+        background: 'white',
+        borderBottom: '1px solid #e5e7eb',
+        padding: '0 24px',
+        position: 'sticky',
+        top: '73px',
+        zIndex: 90,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '32px',
+          padding: '12px 0'
+        }}>
+          <a 
+            href="/builder"
+            style={{
+              color: '#374151',
+              textDecoration: 'none',
+              fontSize: '14px',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'color 0.2s'
+            }}
+            onMouseEnter={(e) => e.target.style.color = '#3b82f6'}
+            onMouseLeave={(e) => e.target.style.color = '#374151'}
+          >
+            <Layers size={16} />
+            Form Builder
+          </a>
+          
+          <a 
+            href="#templates"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('templates-section')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            style={{
+              color: '#374151',
+              textDecoration: 'none',
+              fontSize: '14px',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'color 0.2s'
+            }}
+            onMouseEnter={(e) => e.target.style.color = '#3b82f6'}
+            onMouseLeave={(e) => e.target.style.color = '#374151'}
+          >
+            <FileText size={16} />
+            Templates
+          </a>
+          
+          <a 
+            href="/integrations"
+            style={{
+              color: '#374151',
+              textDecoration: 'none',
+              fontSize: '14px',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'color 0.2s',
+              background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              color: 'white'
+            }}
+          >
+            <Zap size={16} />
+            Integrations
+            <span style={{
+              background: 'white',
+              color: '#f59e0b',
+              padding: '2px 6px',
+              borderRadius: '4px',
+              fontSize: '11px',
+              fontWeight: 'bold',
+              marginLeft: '4px'
+            }}>
+              NEW
+            </span>
+          </a>
+          
+          <a 
+            href="#pricing"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('pricing-section')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            style={{
+              color: '#374151',
+              textDecoration: 'none',
+              fontSize: '14px',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'color 0.2s'
+            }}
+            onMouseEnter={(e) => e.target.style.color = '#3b82f6'}
+            onMouseLeave={(e) => e.target.style.color = '#374151'}
+          >
+            <CreditCard size={16} />
+            Pricing
+          </a>
+        </div>
+      </div>
 
       {/* Hero Section */}
       <Layout.Section padding="xl">
