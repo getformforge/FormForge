@@ -248,10 +248,14 @@ const HomePage = ({ onNavigate }) => {
           
           <button
             onClick={() => {
-              const element = document.getElementById('templates-section');
-              if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }
+              setTimeout(() => {
+                const element = document.getElementById('templates-section');
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                  console.log('Templates section not found');
+                }
+              }, 100);
             }}
             style={{
               color: '#374151',
@@ -265,10 +269,15 @@ const HomePage = ({ onNavigate }) => {
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              padding: 0
+              padding: '4px 8px',
+              fontFamily: 'inherit'
             }}
-            onMouseEnter={(e) => e.target.style.color = '#3b82f6'}
-            onMouseLeave={(e) => e.target.style.color = '#374151'}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#3b82f6';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#374151';
+            }}
           >
             <FileText size={16} />
             Templates
@@ -308,10 +317,14 @@ const HomePage = ({ onNavigate }) => {
           
           <button
             onClick={() => {
-              const element = document.getElementById('pricing-section');
-              if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }
+              setTimeout(() => {
+                const element = document.getElementById('pricing-section');
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                  console.log('Pricing section not found');
+                }
+              }, 100);
             }}
             style={{
               color: '#374151',
@@ -325,10 +338,15 @@ const HomePage = ({ onNavigate }) => {
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              padding: 0
+              padding: '4px 8px',
+              fontFamily: 'inherit'
             }}
-            onMouseEnter={(e) => e.target.style.color = '#3b82f6'}
-            onMouseLeave={(e) => e.target.style.color = '#374151'}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#3b82f6';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#374151';
+            }}
           >
             <CreditCard size={16} />
             Pricing
