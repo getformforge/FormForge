@@ -246,11 +246,12 @@ const HomePage = ({ onNavigate }) => {
             Form Builder
           </a>
           
-          <a 
-            href="#templates"
-            onClick={(e) => {
-              e.preventDefault();
-              document.getElementById('templates-section')?.scrollIntoView({ behavior: 'smooth' });
+          <button
+            onClick={() => {
+              const element = document.getElementById('templates-section');
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
             }}
             style={{
               color: '#374151',
@@ -260,14 +261,18 @@ const HomePage = ({ onNavigate }) => {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              transition: 'color 0.2s'
+              transition: 'color 0.2s',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0
             }}
             onMouseEnter={(e) => e.target.style.color = '#3b82f6'}
             onMouseLeave={(e) => e.target.style.color = '#374151'}
           >
             <FileText size={16} />
             Templates
-          </a>
+          </button>
           
           <a 
             href="/integrations"
@@ -301,11 +306,12 @@ const HomePage = ({ onNavigate }) => {
             </span>
           </a>
           
-          <a 
-            href="#pricing"
-            onClick={(e) => {
-              e.preventDefault();
-              document.getElementById('pricing-section')?.scrollIntoView({ behavior: 'smooth' });
+          <button
+            onClick={() => {
+              const element = document.getElementById('pricing-section');
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
             }}
             style={{
               color: '#374151',
@@ -315,14 +321,18 @@ const HomePage = ({ onNavigate }) => {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              transition: 'color 0.2s'
+              transition: 'color 0.2s',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0
             }}
             onMouseEnter={(e) => e.target.style.color = '#3b82f6'}
             onMouseLeave={(e) => e.target.style.color = '#374151'}
           >
             <CreditCard size={16} />
             Pricing
-          </a>
+          </button>
         </div>
       </div>
 
