@@ -492,6 +492,7 @@ const FormBuilderApp = () => {
       
       // Add custom header if set
       const showHeader = formSettings.showHeader !== false; // Default to true
+      console.log('PDF showHeader:', showHeader, 'pdfHeader:', formSettings.pdfHeader, 'logo:', !!formSettings.logo);
       if (showHeader && (formSettings.pdfHeader || formSettings.logo)) {
         // Add logo if present
         if (formSettings.logo) {
@@ -1313,6 +1314,7 @@ const FormBuilderApp = () => {
                     let currentPage = { rows: [], pageNumber: 1 };
                     // Start at same position as PDF (25mm base + header if present)
                     let currentHeight = showHeader ? 68 : 25; // Match PDF starting position
+                    console.log('Preview starting height:', currentHeight, 'showHeader:', showHeader);
                     
                     const fieldRows = getFieldRows(true); // Apply conditional logic for preview
                     console.log('Preview - Starting with rows:', fieldRows.length);
