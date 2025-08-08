@@ -565,7 +565,9 @@ const FormBuilderApp = () => {
       // Process form fields by rows for multi-column layout
       // Apply conditional logic to filter visible fields for PDF
       const rows = getFieldRows(true);
-      rows.forEach((row) => {
+      console.log('PDF Generation - Starting with rows:', rows.length);
+      rows.forEach((row, rowIndex) => {
+        console.log(`PDF Gen - Row ${rowIndex}: fields=${row.fields?.length}, columns=${row.columns}, currentY=${currentY}`);
         // Check if we need a new page before adding content (only if we have substantial content left)
         if (currentY > pageHeight - 50 && row.fields && row.fields.length > 0) {
           // Check if this is just trailing space - don't create new page for minimal content
@@ -685,6 +687,7 @@ const FormBuilderApp = () => {
               });
               
               const fieldHeight = 8 + (lines.length * 4) + 8;
+              console.log(`  Field ${field.label}: ${lines.length} lines, height=${fieldHeight}`);
               maxHeight = Math.max(maxHeight, fieldHeight);
             }
           }
@@ -692,6 +695,7 @@ const FormBuilderApp = () => {
         
         // Move Y position by the maximum height of the row
         if (maxHeight > 0) {
+          console.log(`PDF Gen - Row ${rowIndex} height: ${maxHeight}, new currentY will be: ${currentY + maxHeight}`);
           currentY += maxHeight;
         }
       });
@@ -1311,8 +1315,10 @@ const FormBuilderApp = () => {
                     let currentHeight = HEADER_HEIGHT;
                     
                     const fieldRows = getFieldRows(true); // Apply conditional logic for preview
+                    console.log('Preview - Starting with rows:', fieldRows.length);
                     
                     fieldRows.forEach((row, index) => {
+                      console.log(`Preview - Row ${index}: fields=${row.fields?.length}, columns=${row.columns}, currentHeight=${currentHeight}`);
                       // Calculate more accurate row height based on field types
                       let estimatedHeight = 0;
                       
@@ -1366,6 +1372,7 @@ const FormBuilderApp = () => {
                       }
                       
                       currentPage.rows.push(row);
+                      console.log(`Preview - Row ${index} height: ${estimatedHeight}, new currentHeight will be: ${currentHeight + estimatedHeight}`);
                       currentHeight += estimatedHeight;
                     });
                     
